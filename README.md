@@ -74,10 +74,8 @@ If your client computer Python does not trust the PI Web API certificate you wil
 requests.exceptions.SSLError: HTTPSConnectionPool(host='...', port=443): Max retries exceeded with url: /piwebapi/omf (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self signed certificate (_ssl.c:1051)')))
 ```
 
-Complete dependencies listed in [DEPENDENCIES.md](DEPENDENCIES.md)
-
 ---
 
-For the general steps or switch languages see the Task [ReadMe](../)  
-For the main OMF page on master [ReadMe](https://github.com/osisoft/OSI-Samples-OMF)  
-For the main landing page on master [ReadMe](https://github.com/osisoft/OSI-Samples)
+For the main OMF basic samples page on master [ReadMe](https://github.com/osisoft/OSI-Samples-OMF/blob/master/docs/OMF_BASIC_README.md)
+For the main OMF samples page on master [ReadMe](https://github.com/osisoft/OSI-Samples-OMF)  
+For the main OSIsoft samples page on master [ReadMe](https://github.com/osisoft/OSI-Samples)
