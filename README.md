@@ -1,5 +1,7 @@
 # Building a Python client to send OMF to PI or OCS
 
+**Version:** 1.0.1
+
 | OCS Test Status                                                                                                                                                                                                                                               | PI Test Status                                                                                                                                                                                                                                                      |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OMF/osisoft.sample-omf-basic_api-python?repoName=osisoft%2Fsample-omf-basic_api-python&branchName=master&jobName=Tests_OCS)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=2637&repoName=osisoft%2Fsample-omf-basic_api-python&branchName=master) | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/OMF/osisoft.sample-omf-basic_api-python?repoName=osisoft%2Fsample-omf-basic_api-python&branchName=master&jobName=Tests_OnPrem)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=2637&repoName=osisoft%2Fsample-omf-basic_api-python&branchName=master) |
@@ -16,7 +18,7 @@ To Run this Sample:
 1. Install required modules: `pip install -r requirements.txt`
 1. Open the folder with your favorite IDE
 1. Rename the placeholder config file [config.placeholder.ini](config.placeholder.ini) to `config.ini`
-1. Update `config.ini` with tour credentials
+1. Update `config.ini` with your credentials
 1. Check and update the program to ensure you are sending to OCS or PI.
 1. Run `program.py` from commandline run `python program.py`
 
@@ -76,6 +78,6 @@ requests.exceptions.SSLError: HTTPSConnectionPool(host='...', port=443): Max ret
 
 ---
 
-For the main OMF basic samples page on master [ReadMe](https://github.com/osisoft/OSI-Samples-OMF/blob/master/docs/OMF_BASIC_README.md)
+For the main OMF basic samples page on master [ReadMe](https://github.com/osisoft/OSI-Samples-OMF/blob/master/docs/OMF_BASIC_README.md)  
 For the main OMF samples page on master [ReadMe](https://github.com/osisoft/OSI-Samples-OMF)  
 For the main OSIsoft samples page on master [ReadMe](https://github.com/osisoft/OSI-Samples)
