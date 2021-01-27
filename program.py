@@ -82,7 +82,7 @@ clientSecret = ""
 
 
 def getToken():
-    # Gets the oken for the omfsendpoint
+    # Gets the token for the omfendpoint
     global __expiration, __token, resourceBase, clientId, clientSecret, producerToken, sendingToOCS
 
     if(not sendingToOCS):
