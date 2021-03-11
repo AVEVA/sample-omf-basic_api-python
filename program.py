@@ -37,7 +37,7 @@ USE_COMPRESSION = False
 # Set this to the path of the certificate pem file if you using a self signed cert.
 # Set this to True if your cert is trusted by the Python certify.
 # Set to False if you do not want to check the certificate (NOT RECOMMENDED)
-VERIFY_SSL = True
+VERIFY_SSL = False
 
 # Specify the timeout, in seconds, for sending web requests
 # (if it takes longer than this to send a message, an error will be thrown)
@@ -1088,17 +1088,6 @@ def main(test=False):
     global dataServerName, forceSending, sendingToOCS, VERIFY_SSL, username, password
     success = True
     try:
-        print('------------------------------------------------------------------')
-        print(' .d88888b.  888b     d888 8888888888        8888888b. Y88b   d88P ')
-        print('d88P" "Y88b 8888b   d8888 888               888   Y88b Y88b d88P  ')
-        print('888     888 88888b.d88888 888               888    888  Y88o88P   ')
-        print('888     888 888Y88888P888 8888888           888   d88P   Y888P    ')
-        print('888     888 888 Y888P 888 888               8888888P"     888     ')
-        print('888     888 888  Y8P  888 888               888           888     ')
-        print('Y88b. .d88P 888   "   888 888               888           888     ')
-        print(' "Y88888P"  888       888 888      88888888 888           888     ')
-        print('------------------------------------------------------------------')
-
         # Step 1
         # OCS configuration
         namespaceId = getConfig('Configurations', 'Namespace')
