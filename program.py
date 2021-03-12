@@ -336,7 +336,6 @@ def main(test=False):
                 send_message_to_omf_endpoint(
                     destination, "container", [omf_container])
 
-        
         # Step 7 - Send OMF Data
         count = 0
         time.sleep(1)
