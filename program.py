@@ -18,17 +18,27 @@ import random
 import requests
 import traceback
 import base64
+import os
 
+# ************************************************************************
+# Global Variables
+# ************************************************************************
+
+# The application path. This is used for loading in configuration files
+app_path = None
+
+# The configurations of the destinations to send to
+destinations = None
+
+# List of possible destination types
+destination_types = ["OCS", "EDS", "PI"]
 
 # ************************************************************************
 # Specify options for sending web requests to the target PI System
 # ************************************************************************
 
-# Whether or not we are inferring where the app is pointing to from the config file
-forceSending = False
-
-# Specifys whether we are sending to PI or OCS.  The main changes are in the accepted messages and the URL.
-sendingToOCS = True
+# The version of the OMFmessages
+omfVersion = "1.1"
 
 # Specify whether to compress OMF message before
 # sending it to ingress endpoint
@@ -37,56 +47,30 @@ USE_COMPRESSION = False
 # Set this to the path of the certificate pem file if you using a self signed cert.
 # Set this to True if your cert is trusted by the Python certify.
 # Set to False if you do not want to check the certificate (NOT RECOMMENDED)
-VERIFY_SSL = False
+VERIFY_SSL = True
 
 # Specify the timeout, in seconds, for sending web requests
 # (if it takes longer than this to send a message, an error will be thrown)
 WEB_REQUEST_TIMEOUT_SECONDS = 30
 
-# Holder for the producer token.  It is set from the configuration
-producerToken = ""
-
-# Holder for the omfEndPoint if sending to PI.  It is set from the configuration
-omfEndPoint = ""
-
-# Holder for the checkbase if sending to PI.  It is set from the configuration
-checkBase = ""
-
-# Holder for the omfEndPoint base if sending to OCS.  Auth and OMF endpoint are built from this.  It is set from the configuration
-resourceBase = ""
-
-dataServerName = ""
-
-username = ""
-
-password = ""
-
-
-# The version of the OMFmessages
-omfVersion = "1.1"
-
-# Holders for data message values
-integer_boolean_value = 0
-string_boolean_value = "True"
-integer_index1 = 0
-integer_index2_1 = 1
-integer_index2_2 = 1
-
 # Token information
 __expiration = 0
 __token = ""
 
-# Auth information.  It is set from the configuration
-clientId = ""
-clientSecret = ""
+# Holders for data message values
+boolean_value_1 = 0
+boolean_value_2 = 1
 
 
-def getToken():
-    # Gets the token for the omfendpoint
-    global __expiration, __token, resourceBase, clientId, clientSecret, producerToken, sendingToOCS
+def get_token(destination):
+    '''Gets the token for the omfendpoint'''
 
-    if(not sendingToOCS):
-        return producerToken
+    global __expiration, __token
+
+    destination_type = destination["destination-type"]
+    # return an empty string if the destination is not an OCS type
+    if destination_type != destination_types[0]:
+        return ""
 
     if ((__expiration - time.time()) > 5 * 60):
         return __token
@@ -94,7 +78,7 @@ def getToken():
     # we can't short circuit it, so we must go retreive it.
 
     discoveryUrl = requests.get(
-        resourceBase + "/identity/.well-known/openid-configuration",
+        destination["resource"] + "/identity/.well-known/openid-configuration",
         headers={"Accept": "application/json"},
         verify=VERIFY_SSL)
 
@@ -108,8 +92,8 @@ def getToken():
 
     tokenInformation = requests.post(
         tokenEndpoint,
-        data={"client_id": clientId,
-              "client_secret": clientSecret,
+        data={"client_id": destination["client-id"],
+              "client_secret": destination["client-secret"],
               "grant_type": "client_credentials"},
         verify=VERIFY_SSL)
 
@@ -132,10 +116,10 @@ def getToken():
 # All it does is take in a data object and a message type, and it sends an HTTPS
 # request to the target OMF endpoint
 
-def send_omf_message_to_endpoint(message_type, message_omf_json, action='create'):
-    # Sends the request out to the preconfigured endpoint..
+def send_message_to_omf_endpoint(destination, message_type, message_omf_json, action='create'):
+    '''Sends the request out to the preconfigured endpoint'''
+    global destination_types
 
-    global producerToken, omfEndPoint, omfVersion, sendingToOCS, username, password
     # Compress json omf payload, if specified
     compression = 'none'
     if USE_COMPRESSION:
@@ -144,29 +128,41 @@ def send_omf_message_to_endpoint(message_type, message_omf_json, action='create'
     else:
         msg_body = json.dumps(message_omf_json)
 
-    msg_headers = getHeaders(compression, message_type, action)
+    # Collect the message headers
+    msg_headers = getHeaders(destination, compression, message_type, action)
+
+    # Send message to OMF endpoint
+    destinations_type = destination["destination-type"]
     response = {}
-    # Assemble headers
-    if sendingToOCS:
+    # If the destination is OCS
+    if destinations_type == destination_types[0]:
         response = requests.post(
-            omfEndPoint,
+            destination["omf-endpoint"],
             headers=msg_headers,
             data=msg_body,
             verify=VERIFY_SSL,
             timeout=WEB_REQUEST_TIMEOUT_SECONDS
         )
-    else:
+    # If the destination is EDS
+    elif destinations_type == destination_types[1]:
         response = requests.post(
-            omfEndPoint,
+            destination["omf-endpoint"],
+            headers=msg_headers,
+            data=msg_body,
+            timeout=WEB_REQUEST_TIMEOUT_SECONDS
+        )
+    # If the destination is PI
+    elif destinations_type == destination_types[2]:
+        response = requests.post(
+            destination["omf-endpoint"],
             headers=msg_headers,
             data=msg_body,
             verify=VERIFY_SSL,
             timeout=WEB_REQUEST_TIMEOUT_SECONDS,
-            auth=(username, password)
+            auth=(destination["username"], destination["password"])
         )
 
-    # Send the request, and collect the response
-
+    # Check the response
     if response.status_code == 409:
         return
 
@@ -181,21 +177,36 @@ def send_omf_message_to_endpoint(message_type, message_omf_json, action='create'
             message_type=message_type, status=response.status_code, reason=response.text))
 
 
-def getHeaders(compression="", message_type="", action=""):
-    global sendingToOCS
+def getHeaders(destination, compression="", message_type="", action=""):
+    '''Assemble headers for sending to the destination's OMF endpoint'''
+    global destination_types
 
-    # Assemble headers
-    if sendingToOCS:
+    destination_type = destination["destination-type"]
+
+    # If the destination is OCS
+    if destination_type == destination_types[0]:
         msg_headers = {
-            "Authorization": "Bearer %s" % getToken(),
-            'producertoken': getToken(),
+            "Authorization": "Bearer %s" % get_token(destination),
+            'producertoken': get_token(destination),
             'messagetype': message_type,
             'action': action,
             'messageformat': 'JSON',
             'omfversion': omfVersion,
             'compression': compression
         }
-    else:
+    # If the destination is EDS
+    elif destination_type == destination_types[1]:
+        msg_headers = {
+            "Content-Type": "application/json",
+            'messagetype': message_type,
+            'action': action,
+            'messageformat': 'JSON',
+            'omfversion': omfVersion
+        }
+        if(compression == "gzip"):
+            msg_headers["compression"] = "gzip"
+    # If the destination is PI
+    elif destination_type == destination_types[1]:
         msg_headers = {
             "x-requested-with": "xmlhttprequest",
             'messagetype': message_type,
@@ -205,8 +216,10 @@ def getHeaders(compression="", message_type="", action=""):
         }
         if(compression == "gzip"):
             msg_headers["compression"] = "gzip"
+
     return msg_headers
 
+'''
 
 def checkValueGone(url):
     # Sends the request out to the preconfigured endpoint..
@@ -288,719 +301,6 @@ def checkValue(url):
     return response.text
 
 
-def getCurrentTime():
-    # Returns the current time
-    return datetime.datetime.utcnow().isoformat() + 'Z'
-
-# Creates a JSON packet containing data values for containers
-# of type FirstDynamicType defined below
-
-
-def create_data_values_for_first_dynamic_type(containerid):
-    # Returns a JSON representation of data for the first dynamic type.
-    return [
-        {
-            "containerid": containerid,
-            "values": [
-                {
-                    "timestamp": getCurrentTime(),
-                    "IntegerProperty": int(100*random.random())
-                }
-            ]
-        }
-    ]
-
-# Creates a JSON packet containing data values for containers
-# of type SecondDynamicType defined below
-
-
-def create_data_values_for_second_dynamic_type(containerid):
-    # Returns a JSON representation of data for the the second type.
-    global string_boolean_value
-    if string_boolean_value == "True":
-        string_boolean_value = "False"
-    else:
-        string_boolean_value = "True"
-
-    return [
-        {
-            "containerid": containerid,
-            "values": [
-                {
-                    "timestamp": getCurrentTime(),
-                    "NumberProperty1": 100*random.random(),
-                    "NumberProperty2": 100*random.random(),
-                    "StringEnum": string_boolean_value
-                }
-            ]
-        }
-    ]
-
-# of type ThirdDynamicType defined below
-
-
-def create_data_values_for_third_dynamic_type(containerid):
-    # Returns a JSON representation of data for the third dynamic type.
-    global integer_boolean_value
-    if integer_boolean_value == 0:
-        integer_boolean_value = 1
-    else:
-        integer_boolean_value = 0
-    return [
-        {
-            "containerid": containerid,
-            "values": [
-                {
-                    "timestamp": getCurrentTime(),
-                    "IntegerEnum": integer_boolean_value
-                }
-            ]
-        }
-    ]
-
-# Creates a JSON packet containing data values for containers
-# of type NonTimeStampIndex defined below
-
-
-def create_data_values_for_NonTimeStampIndexAndMultiIndex_type(NonTimeStampIndexID, MultiIndexId):
-    # Returns a JSON representation of data for the nontime stap and multi-index types.
-    global integer_index1
-    global integer_index2_1, integer_index2_2
-
-    integer_index1 = integer_index1 + 2
-
-    if integer_index2_2 % 3 == 0:
-        integer_index2_2 = 1
-        integer_index2_1 = integer_index2_1 + 1
-    else:
-        integer_index2_2 = integer_index2_2 + 1
-
-    return [
-        {
-            "containerid": NonTimeStampIndexID,
-            "values": [
-                {
-                    "Value": random.random()*88,
-                    "Int_Key": integer_index1
-                },
-                {
-                    "Value": random.random()*88,
-                    "Int_Key": integer_index1 + 1
-                }
-            ]
-        },
-        {
-            "containerid": MultiIndexId,
-            "values": [
-                {
-                    "Value1": random.random()*-125,
-                    "Value2": random.random()*42,
-                    "IntKey": integer_index2_1,
-                    "IntKey2": integer_index2_2
-                }
-            ]
-        }
-    ]
-
-
-def oneTimeSendMessagesDelete(action='delete'):
-    # Wrapper around all of the data and container messages.
-    global omfVersion, sendingToOCS
-
-    send_omf_message_to_endpoint("container", [
-        {
-            "id": "Container1",
-            "typeid": "FirstDynamicType"
-        },
-        {
-            "id": "Container2",
-            "typeid": "FirstDynamicType"
-        },
-        {
-            "id": "Container3",
-            "typeid": "SecondDynamicType"
-        },
-        {
-            "id": "Container4",
-            "typeid": "ThirdDynamicType"
-        }
-    ], action)
-
-    if(sendingToOCS):
-        send_omf_message_to_endpoint("container", [
-            {
-                "id": "Container5",
-                "typeid": "NonTimeStampIndex"
-            },
-            {
-                "id": "Container6",
-                "typeid": "MultiIndex"
-            }
-        ], action)
-    else:
-        # PI Web API requires cleaning up data before deleting types
-        send_omf_message_to_endpoint("data", [
-            {
-                "typeid": "FirstStaticType",
-                "values": [
-                    {
-                        "index": "Asset1",
-                        "name": "Parent element",
-                        "StringProperty": "Parent element attribute value"
-                    }
-                ]
-            },
-            {
-                "typeid": "SecondStaticType",
-                "values": [
-                    {
-                        "index": "Asset2",
-                        "name": "Child element",
-                        "StringProperty": "Child element attribute value"
-                    }
-                ]
-            }
-        ], action)
-
-    send_omf_message_to_endpoint("type", [
-        {
-            "id": "FirstStaticType",
-            "name": "First static type",
-            "classification": "static",
-            "type": "object",
-            "description": "First static asset type",
-            "properties": {
-                "index": {
-                    "type": "string",
-                    "isindex": True,
-                    "description": "not in use"
-                },
-                "name": {
-                    "type": "string",
-                    "isname": True,
-                    "description": "not in use"
-                },
-                "StringProperty": {
-                    "type": "string",
-                    "description": "First static asset type's configuration attribute"
-                }
-            }
-        },
-        {
-            "id": "SecondStaticType",
-            "name": "Second static type",
-            "classification": "static",
-            "type": "object",
-            "description": "Second static asset type",
-            "properties": {
-                "index": {
-                    "type": "string",
-                    "isindex": True,
-                    "description": "not in use"
-                },
-                "name": {
-                    "type": "string",
-                    "isname": True,
-                    "description": "not in use"
-                },
-                "StringProperty": {
-                    "type": "string",
-                    "description": "Second static asset type's configuration attribute"
-                }
-            }
-        }
-    ],
-        action)
-
-    send_omf_message_to_endpoint("type", [
-        {
-            "id": "FirstDynamicType",
-            "name": "First dynamic type",
-            "classification": "dynamic",
-            "type": "object",
-            "description": "not in use",
-            "properties": {
-                "timestamp": {
-                    "format": "date-time",
-                    "type": "string",
-                    "isindex": True,
-                    "description": "not in use"
-                },
-                "IntegerProperty": {
-                    "type": "integer",
-                    "description": "PI point data referenced integer attribute"
-                }
-            }
-        },
-        {
-            "id": "SecondDynamicType",
-            "name": "Second dynamic type",
-            "classification": "dynamic",
-            "type": "object",
-            "description": "not in use",
-            "properties": {
-                "timestamp": {
-                    "format": "date-time",
-                    "type": "string",
-                    "isindex": True,
-                    "description": "not in use"
-                },
-                "NumberProperty1": {
-                    "type": "number",
-                    "description": "PI point data referenced number attribute 1",
-                    "format": "float64"
-                },
-                "NumberProperty2": {
-                    "type": "number",
-                    "description": "PI point data referenced number attribute 2",
-                    "format": "float64"
-                },
-                "StringEnum": {
-                    "type": "string",
-                    "enum": ["False", "True"],
-                    "description": "String enumeration to replace boolean type"
-                }
-            }
-        },
-        {
-            "id": "ThirdDynamicType",
-            "name": "Third dynamic type",
-            "classification": "dynamic",
-            "type": "object",
-            "description": "not in use",
-            "properties": {
-                "timestamp": {
-                    "format": "date-time",
-                    "type": "string",
-                    "isindex": True,
-                    "description": "not in use"
-                },
-                "IntegerEnum": {
-                    "type": "integer",
-                    "format": "int16",
-                    "enum": [0, 1],
-                    "description": "Integer enumeration to replace boolean type"
-                }
-            }
-        }
-    ], action)
-
-    if(sendingToOCS):
-        send_omf_message_to_endpoint("type", [
-            {
-                "id": "NonTimeStampIndex",
-                "name": "NonTimeStampIndex",
-                "classification": "dynamic",
-                "type": "object",
-                "description": "Integer Fun",
-                "properties": {
-                    "Value": {
-                        "type": "number",
-                        "name": "Value",
-                        "description": "This could be any value"
-                    },
-                    "Int_Key": {
-                        "type": "integer",
-                        "name": "Integer Key",
-                        "isindex": True,
-                        "description": "A non-time stamp key"
-                    }
-                }
-            },
-            {
-                "id": "MultiIndex",
-                "name": "Multi_index",
-                "classification": "dynamic",
-                "type": "object",
-                "description": "This one has multiple indicies",
-                "properties": {
-                    "Value": {
-                        "type": "number",
-                        "name": "Value1",
-                        "description": "This could be any value"
-                    },
-                    "Value2": {
-                        "type": "number",
-                        "name": "Value2",
-                        "description": "This could be any value too"
-                    },
-                    "IntKey": {
-                        "type": "integer key part 1",
-                        "name": "integer key part 1",
-                        "isindex": True,
-                        "description": "This could represent any integer value"
-                    },
-                    "IntKey2": {
-                        "type": "integer key part 2",
-                        "name": "integer key part 2",
-                        "isindex": True,
-                        "description": "This could represent any integer value as well"
-                    }
-                }
-            }
-        ], action)
-
-
-def oneTimeSendMessages(action='create'):
-    # Wrapper around all of the data and container messages.
-    global omfVersion, sendingToOCS
-
-    # ************************************************************************
-    # Send the types messages to define the types of streams that will be sent.
-    # These types are referenced in all later messages
-    # ************************************************************************
-
-    # The sample divides types, and sends static and dynamic types
-    # separatly only for readability; you can send all the type definitions
-    # in one message, as far as its size is below maximum allowed - 192K
-    # ************************************************************************
-
-    # Step 3
-    # Send a JSON packet to define static types
-    # Note for OCS this message is currently ignored.
-    send_omf_message_to_endpoint("type", [
-        {
-            "id": "FirstStaticType",
-            "name": "First static type",
-            "classification": "static",
-            "type": "object",
-            "description": "First static asset type",
-            "properties": {
-                "index": {
-                    "type": "string",
-                    "isindex": True,
-                    "description": "not in use"
-                },
-                "name": {
-                    "type": "string",
-                    "isname": True,
-                    "description": "not in use"
-                },
-                "StringProperty": {
-                    "type": "string",
-                    "description": "First static asset type's configuration attribute"
-                }
-            }
-        },
-        {
-            "id": "SecondStaticType",
-            "name": "Second static type",
-            "classification": "static",
-            "type": "object",
-            "description": "Second static asset type",
-            "properties": {
-                "index": {
-                    "type": "string",
-                    "isindex": True,
-                    "description": "not in use"
-                },
-                "name": {
-                    "type": "string",
-                    "isname": True,
-                    "description": "not in use"
-                },
-                "StringProperty": {
-                    "type": "string",
-                    "description": "Second static asset type's configuration attribute"
-                }
-            }
-        }
-    ],
-        action)
-
-    # Step 4
-    # Send a JSON packet to define dynamic types
-    send_omf_message_to_endpoint("type", [
-        {
-            "id": "FirstDynamicType",
-            "name": "First dynamic type",
-            "classification": "dynamic",
-            "type": "object",
-            "description": "not in use",
-            "properties": {
-                "timestamp": {
-                    "format": "date-time",
-                    "type": "string",
-                    "isindex": True,
-                    "description": "not in use"
-                },
-                "IntegerProperty": {
-                    "type": "integer",
-                    "description": "PI point data referenced integer attribute"
-                }
-            }
-        },
-        {
-            "id": "SecondDynamicType",
-            "name": "Second dynamic type",
-            "classification": "dynamic",
-            "type": "object",
-            "description": "not in use",
-            "properties": {
-                "timestamp": {
-                    "format": "date-time",
-                    "type": "string",
-                    "isindex": True,
-                    "description": "not in use"
-                },
-                "NumberProperty1": {
-                    "type": "number",
-                    "description": "PI point data referenced number attribute 1",
-                    "format": "float64"
-                },
-                "NumberProperty2": {
-                    "type": "number",
-                    "description": "PI point data referenced number attribute 2",
-                    "format": "float64"
-                },
-                "StringEnum": {
-                    "type": "string",
-                    "enum": ["False", "True"],
-                    "description": "String enumeration to replace boolean type"
-                }
-            }
-        },
-        {
-            "id": "ThirdDynamicType",
-            "name": "Third dynamic type",
-            "classification": "dynamic",
-            "type": "object",
-            "description": "not in use",
-            "properties": {
-                "timestamp": {
-                    "format": "date-time",
-                    "type": "string",
-                    "isindex": True,
-                    "description": "not in use"
-                },
-                "IntegerEnum": {
-                    "type": "integer",
-                    "format": "int16",
-                    "enum": [0, 1],
-                    "description": "Integer enumeration to replace boolean type"
-                }
-            }
-        }
-    ], action)
-
-    # Step 5
-    # Note for PI these messages throw errors if you send them
-    # Send a JSON packet to define dynamic types
-    if(sendingToOCS):
-        send_omf_message_to_endpoint("type", [
-            {
-                "id": "NonTimeStampIndex",
-                "name": "NonTimeStampIndex",
-                "classification": "dynamic",
-                "type": "object",
-                "description": "Integer Fun",
-                "properties": {
-                    "Value": {
-                        "type": "number",
-                        "name": "Value",
-                        "description": "This could be any value"
-                    },
-                    "Int_Key": {
-                        "type": "integer",
-                        "name": "Integer Key",
-                        "isindex": True,
-                        "description": "A non-time stamp key"
-                    }
-                }
-            },
-            {
-                "id": "MultiIndex",
-                "name": "Multi_index",
-                "classification": "dynamic",
-                "type": "object",
-                "description": "This one has multiple indicies",
-                "properties": {
-                    "Value": {
-                        "type": "number",
-                        "name": "Value1",
-                        "description": "This could be any value"
-                    },
-                    "Value2": {
-                        "type": "number",
-                        "name": "Value2",
-                        "description": "This could be any value too"
-                    },
-                    "IntKey": {
-                        "type": "integer key part 1",
-                        "name": "integer key part 1",
-                        "isindex": True,
-                        "description": "This could represent any integer value"
-                    },
-                    "IntKey2": {
-                        "type": "integer key part 2",
-                        "name": "integer key part 2",
-                        "isindex": True,
-                        "description": "This could represent any integer value as well"
-                    }
-                }
-            }
-        ], action)
-
-    # ************************************************************************
-    # Send a JSON packet to define containerids and the type
-    # (using the types listed above) for each new data events container.
-    # This instantiates these particular containers.
-    # We can now directly start sending data to it using its Id.
-    # ************************************************************************
-
-    # Step 6
-    send_omf_message_to_endpoint("container", [
-        {
-            "id": "Container1",
-            "typeid": "FirstDynamicType"
-        },
-        {
-            "id": "Container2",
-            "typeid": "FirstDynamicType"
-        },
-        {
-            "id": "Container3",
-            "typeid": "SecondDynamicType"
-        },
-        {
-            "id": "Container4",
-            "typeid": "ThirdDynamicType"
-        }
-    ], action)
-
-    # Note for PI these messages throw errors.
-
-    if(sendingToOCS):
-        send_omf_message_to_endpoint("container", [
-            {
-                "id": "Container5",
-                "typeid": "NonTimeStampIndex"
-            },
-            {
-                "id": "Container6",
-                "typeid": "MultiIndex"
-            }
-        ], action)
-
-    # ************************************************************************
-    # Send the messages to create the PI AF asset structure
-    #
-    # The following packets can be sent in one data message; the example
-    # splits the data into several messages only for readability;
-    # you can send all of the following data in one message,
-    # as far as its size is below maximum allowed - 192K
-    # ************************************************************************
-
-    # Note for OCS these messages are ignored.
-
-    # Step 7
-    # Send a JSON packet to define assets
-    send_omf_message_to_endpoint("data", [
-        {
-            "typeid": "FirstStaticType",
-            "values": [
-                {
-                    "index": "Asset1",
-                    "name": "Parent element",
-                    "StringProperty": "Parent element attribute value"
-                }
-            ]
-        },
-        {
-            "typeid": "SecondStaticType",
-            "values": [
-                {
-                    "index": "Asset2",
-                    "name": "Child element",
-                    "StringProperty": "Child element attribute value"
-                }
-            ]
-        }
-    ], action)
-
-    # Step 8
-    # Send a JSON packet to define links between assets
-    # to create AF Asset structure
-    '''
-    send_omf_message_to_endpoint("data", [
-        {
-            "typeid": "__Link",
-            "values": [
-                {
-                    "source": {
-                            "typeid": "FirstStaticType",
-                            "index": "_ROOT"
-                    },
-                    "target": {
-                            "typeid": "FirstStaticType",
-                            "index": "Asset1"
-                    }
-                },
-                {
-                    "source": {
-                            "typeid": "FirstStaticType",
-                            "index": "Asset1"
-                    },
-                    "target": {
-                            "typeid": "SecondStaticType",
-                            "index": "Asset2"
-                    }
-                }
-            ]
-        }
-    ],action)
-    '''
-
-    # Send a JSON packet to define links between assets and
-    # containerids to create attributes with PI point references
-    # from containerid properties
-    '''
-    send_omf_message_to_endpoint("data", [
-        {
-            "typeid": "__Link",
-            "values": [
-                {
-                    "source": {
-                            "typeid": "FirstStaticType",
-                            "index": "Asset1"
-                    },
-                    "target": {
-                            "containerid": "Container1"
-                    }
-                },
-                {
-                    "source": {
-                            "typeid": "SecondStaticType",
-                            "index": "Asset2"
-                    },
-                    "target": {
-                            "containerid": "Container2"
-                    }
-                },
-                {
-                    "source": {
-                            "typeid": "SecondStaticType",
-                            "index": "Asset2"
-                    },
-                    "target": {
-                            "containerid": "Container3"
-                    }
-                },
-                {
-                    "source": {
-                            "typeid": "SecondStaticType",
-                            "index": "Asset2"
-                    },
-                    "target": {
-                            "containerid": "Container4"
-                    }
-                }
-            ]
-        }
-    ],action)
-    '''
-
-
 def checkDeletes():
     global checkBase, dataServerName
 
@@ -1049,14 +349,7 @@ def checkSends(lastVal):
         # just checking to make sure some data made it it, could do a more comprhensive check but this is ok...
         assert lastVal[0]['values'][0]['IntegerProperty'] == json.loads(json1)[
             'Value']
-
-
-def supressError(sdsCall):
-    # easily call a function and not have to wrap it individually for failure
-    try:
-        sdsCall()
-    except Exception as e:
-        print(("Encountered Error: {error}".format(error=e)))
+'''
 
 # ************************************************************************
 # Helper functions: REQUIRED: create a JSON message that contains data values
@@ -1070,11 +363,89 @@ def supressError(sdsCall):
 # ************************************************************************
 
 
-def getConfig(section, field):
-    # Reads the config file for the field specified
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    return config.has_option(section, field) and config.get(section, field) or ""
+def get_current_time():
+    ''' Returns the current time'''
+    return datetime.datetime.utcnow().isoformat() + 'Z'
+
+
+def get_data(data):
+    ''' Get data to be sent to EDS'''
+    global boolean_value_1, boolean_value_2
+
+    if data["containerid"] == "Container1" or data["containerid"] == "Container2":
+        data["values"][0]["timestamp"] = get_current_time()
+        data["values"][0]["IntegerProperty"] = int(100*random.random())
+
+    elif data["containerid"] == "Container3":
+        boolean_value_2 = (boolean_value_2 + 1) % 2
+        data["values"][0]["timestamp"] = get_current_time()
+        data["values"][0]["NumberProperty1"] = 100*random.random()
+        data["values"][0]["NumberProperty2"] = 100*random.random()
+        data["values"][0]["StringEnum"] = str(bool(boolean_value_2))
+
+    elif data["containerid"] == "Container4":
+        boolean_value_1 = (boolean_value_1 + 1) % 2
+        data["values"][0]["timestamp"] = get_current_time()
+        data["values"][0]["IntegerEnum"] = boolean_value_1
+
+    else:
+        print(f"Container {data['containerid']} not recognized")
+    
+    return data
+
+
+def get_json_file(filename):
+    ''' Get a json file relative to the application's path'''
+    global app_path
+
+    # Try to open the configuration file
+    try:
+        with open(
+            f"{app_path}/{filename}",
+            "r",
+        ) as f:
+            loaded_json = json.load(f)
+    except Exception as error:
+        print(f"Error: {str(error)}")
+        print(f"Could not open/read file: {filename}")
+        exit()
+
+    return loaded_json
+
+
+def get_config():
+    ''' Return the config.json as a config file, while also populating check_base and omf_endpoint'''
+    global destination_types
+
+    # Try to open the configuration file
+    destinations = get_json_file("config.json")
+
+    # for each destination construct the check base and OMF endpoint
+    for destination in destinations:
+        destination_type = destination["destination-type"]
+
+        # If the destination is OCS
+        if destination_type == destination_types[0]:
+            check_base = f"{destination['resource']}/api/{destination['api-version']}" + \
+                f"/tenants/{destination['tenant']}/namespaces/{destination['namespace']}"
+
+        # If the destination is EDS
+        elif destination_type == destination_types[1]:
+            check_base = f"{destination['resource']}/api/{destination['api-version']}" + \
+                f"/tenants/default/namespaces/default"
+
+        # If the destination is PI
+        elif destination_type == destination_types[2]:
+            check_base = destination["resource"]
+
+        omf_endpoint = f"{check_base}/omf"
+
+        # add the check_base and omf_endpoint to the destination configuration
+        destination["check-base"] = check_base
+        destination["omf-endpoint"] = omf_endpoint
+
+    return destinations
+
 
 # ************************************************************************
 # Note: PI points will be created on the first data value message
@@ -1084,100 +455,86 @@ def getConfig(section, field):
 
 def main(test=False):
     # Main program.  Seperated out so that we can add a test function and call this easily
-    global omfVersion, resourceBase, producerToken, omfEndPoint, clientId, clientSecret, checkBase
-    global dataServerName, forceSending, sendingToOCS, VERIFY_SSL, username, password
+    global app_path, destinations, destination_types
+
     success = True
-    try:
-        # Step 1
-        # OCS configuration
-        namespaceId = getConfig('Configurations', 'Namespace')
-        resourceBase = getConfig('Access', 'Resource')
-        tenant = getConfig('Access', 'Tenant')
-        apiversion = getConfig('Access', 'ApiVersion')
-        producerToken = getConfig('Credentials', 'ProducerToken')
-        clientId = getConfig('Credentials', 'ClientId')
-        clientSecret = getConfig('Credentials', 'ClientSecret')
 
-        # PI Web API configuration
-        dataServerName = getConfig('Configurations', 'DataServerName')
-        verify = getConfig('Configurations', 'VERIFY_SSL')
-        username = getConfig('Credentials', 'username')
-        password = getConfig('Credentials', 'password')
+    # get the app_path
+    app_path = os.path.dirname(os.path.abspath(__file__))
 
-        # shared configuration
-        resourceBase = getConfig('Access', 'Resource')
+    if not VERIFY_SSL:
+        print("You are not verifying the certificate of the end point.  This is not advised for any system as there are security issues with doing this.")
 
-        if verify is not None:
-            if verify == "False":
-                VERIFY_SSL = False
+    # Step 1 - Read destination configurations from config.json
+    destinations = get_config()
 
-        if not forceSending:
-            if tenant == "":
-                sendingToOCS = False
-            else:
-                sendingToOCS = True
+    # Step 2 - Get OMF Types
+    omf_types = get_json_file("OMF-Types.json")
 
-        if sendingToOCS:
-            checkBase = resourceBase + '/api/' + apiversion + \
-                '/tenants/' + tenant + '/namespaces/' + namespaceId
-            omfEndPoint = checkBase + '/omf'
-        else:
-            checkBase = resourceBase
-            omfEndPoint = checkBase + '/omf'
+    # Step 3 - Get OMF Containers
+    omf_containers = get_json_file("OMF-Containers.json")
 
-        if not VERIFY_SSL:
-            print("You are not verifying the certificate of the end point.  This is not advised for any system as there are security issues with doing this.")
+    # Step 4 - Get OMF Data
+    omf_data = get_json_file("OMF-Data.json")
 
-        # Step 2
-        getToken()
+    # Send messages and check for each destination in config.json
+    for destination in destinations:
+        try:
+            get_token(destination)
 
-        # Steps 3-8 contained in here
-        oneTimeSendMessages()
+            # Step 5 - Send OMF Types
+            for omf_type in omf_types:
+                send_message_to_omf_endpoint(destination, "type", [omf_type])
 
-        # Step 9
-        count = 0
-        lastVal = ''
-        time.sleep(1)
-        while count == 0 or ((not test) and count < 2):
-            val = create_data_values_for_first_dynamic_type("Container1")
-            lastVal = val
-            send_omf_message_to_endpoint("data", val)
-            send_omf_message_to_endpoint(
-                "data", create_data_values_for_first_dynamic_type("Container2"))
-            send_omf_message_to_endpoint(
-                "data", create_data_values_for_second_dynamic_type("Container3"))
-            send_omf_message_to_endpoint(
-                "data", create_data_values_for_third_dynamic_type("Container4"))
-            if(sendingToOCS):
-                send_omf_message_to_endpoint(
-                    "data", create_data_values_for_NonTimeStampIndexAndMultiIndex_type("Container5", "Container6"))
+            # Step 6 - Send OMF Containers
+            for omf_container in omf_containers:
+                send_message_to_omf_endpoint(
+                    destination, "container", [omf_container])
+
+            # Step 7 - Send OMF Data
+            count = 0
             time.sleep(1)
-            count = count + 1
-        checkSends(lastVal)
-    except Exception as ex:
-        print(("Encountered Error: {error}".format(error=ex)))
-        print
-        traceback.print_exc()
-        print
-        success = False
-        if test:
-            raise ex
+            while count == 0 or ((not test) and count < 2):
+                for omf_datum in omf_data:
+                    # send the data
+                    send_message_to_omf_endpoint(
+                        destination, "data", [get_data(omf_datum)])
+                time.sleep(1)
+                count = count + 1
+            
+            # Step 8 - Check sends
 
-    finally:
-        print('Deletes')
+        except Exception as ex:
+            print(("Encountered Error: {error}".format(error=ex)))
+            print
+            traceback.print_exc()
+            print
+            success = False
+            if test:
+                raise ex
 
-        # Step 10
-        oneTimeSendMessagesDelete()
-        checkDeletes()
-        print
-        return success
+        finally:
+            # Step 9 - Cleanup
+            print('Deletes')
+
+            # delete containers
+            for omf_container in omf_containers:
+                send_message_to_omf_endpoint(
+                    destination, "container", [omf_container], action = 'delete')
+            # delete types
+            for omf_type in omf_types:
+                send_message_to_omf_endpoint(destination, "type", [omf_type], action = 'delete')
+            
+            #checkDeletes()
+            print
+
+    return success
 
 
 main()
 print("done")
 
 # Straightforward test to make sure program is working without an error in program.  Can run it yourself with pytest program.py
-
 
 def test_main():
     # Tests to make sure the sample runs as expected
