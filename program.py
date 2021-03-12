@@ -112,7 +112,7 @@ def send_message_to_omf_endpoint(destination, message_type, message_omf_json, ac
         msg_body = json.dumps(message_omf_json)
 
     # Collect the message headers
-    msg_headers = getHeaders(destination, compression, message_type, action)
+    msg_headers = get_headers(destination, compression, message_type, action)
 
     # Send message to OMF endpoint
     destinations_type = destination["destination-type"]
@@ -160,7 +160,7 @@ def send_message_to_omf_endpoint(destination, message_type, message_omf_json, ac
             message_type=message_type, status=response.status_code, reason=response.text))
 
 
-def getHeaders(destination, compression="", message_type="", action=""):
+def get_headers(destination, compression="", message_type="", action=""):
     '''Assemble headers for sending to the destination's OMF endpoint'''
     global destination_types
 
@@ -170,7 +170,6 @@ def getHeaders(destination, compression="", message_type="", action=""):
     if destination_type == destination_types[0]:
         msg_headers = {
             "Authorization": "Bearer %s" % get_token(destination),
-            'producertoken': get_token(destination),
             'messagetype': message_type,
             'action': action,
             'messageformat': 'JSON',
@@ -201,7 +200,7 @@ def getHeaders(destination, compression="", message_type="", action=""):
             msg_headers["compression"] = "gzip"
 
     return msg_headers
-    
+
 
 def get_current_time():
     ''' Returns the current time'''
@@ -230,7 +229,7 @@ def get_data(data):
 
     else:
         print(f"Container {data['containerid']} not recognized")
-    
+
     return data
 
 
@@ -254,7 +253,7 @@ def get_json_file(filename):
 
 
 def get_config():
-    ''' Return the config.json as a config file, while also populating check_base, omf_endpoint, and default values'''
+    ''' Return the config.json as a config file, while also populating base_endpoint, omf_endpoint, and default values'''
     global destination_types
 
     # Try to open the configuration file
@@ -266,25 +265,25 @@ def get_config():
 
         # If the destination is OCS
         if destination_type == destination_types[0]:
-            check_base = f"{destination['resource']}/api/{destination['api-version']}" + \
+            base_endpoint = f"{destination['resource']}/api/{destination['api-version']}" + \
                 f"/tenants/{destination['tenant']}/namespaces/{destination['namespace']}"
 
         # If the destination is EDS
         elif destination_type == destination_types[1]:
-            check_base = f"{destination['resource']}/api/{destination['api-version']}" + \
+            base_endpoint = f"{destination['resource']}/api/{destination['api-version']}" + \
                 f"/tenants/default/namespaces/default"
 
         # If the destination is PI
         elif destination_type == destination_types[2]:
-            check_base = destination["resource"]
+            base_endpoint = destination["resource"]
 
-        omf_endpoint = f"{check_base}/omf"
+        omf_endpoint = f"{base_endpoint}/omf"
 
-        # add the check_base and omf_endpoint to the destination configuration
-        destination["check-base"] = check_base
+        # add the base_endpoint and omf_endpoint to the destination configuration
+        destination["base-endpoint"] = base_endpoint
         destination["omf-endpoint"] = omf_endpoint
 
-        #check for optional/nullable parameters
+        # check for optional/nullable parameters
         if "verify-ssl" not in destination or destination["verify-ssl"] == None:
             destination["verify-ssl"] = True
 
@@ -293,7 +292,7 @@ def get_config():
 
         if "web-request-timeout-seconds" not in destination or destination["web-request-timeout-seconds"] == None:
             destination["web-request-timeout-seconds"] = 30
-            
+
     return destinations
 
 
@@ -319,11 +318,13 @@ def main(test=False):
     omf_data = get_json_file("OMF-Data.json")
 
     # Send messages and check for each destination in config.json
-    for destination in destinations:
-        try:
+
+    try:
+        # Send out the messages that only need to be sent once
+        for destination in destinations:
             if not destination["verify-ssl"]:
                 print("You are not verifying the certificate of the end point.  This is not advised for any system as there are security issues with doing this.")
-            
+
             get_token(destination)
 
             # Step 5 - Send OMF Types
@@ -335,51 +336,33 @@ def main(test=False):
                 send_message_to_omf_endpoint(
                     destination, "container", [omf_container])
 
-            # Step 7 - Send OMF Data
-            count = 0
-            time.sleep(1)
-            while count == 0 or ((not test) and count < 2):
-                for omf_datum in omf_data:
+        
+        # Step 7 - Send OMF Data
+        count = 0
+        time.sleep(1)
+        # send data to all destinations forever if this is not a test
+        while not test or count < 2:
+            for omf_datum in omf_data:
+                data_to_send = get_data(omf_datum)
+                for destination in destinations:
                     # send the data
                     send_message_to_omf_endpoint(
-                        destination, "data", [get_data(omf_datum)])
-                time.sleep(1)
-                count = count + 1
-            
-            # Step 8 - Check sends
+                        destination, "data", [data_to_send])
+            time.sleep(1)
+            count = count + 1
 
-        except Exception as ex:
-            print(("Encountered Error: {error}".format(error=ex)))
-            print
-            traceback.print_exc()
-            print
-            success = False
-            if test:
-                raise ex
+    except Exception as ex:
+        print(("Encountered Error: {error}".format(error=ex)))
+        print
+        traceback.print_exc()
+        print
+        success = False
+        if test:
+            raise ex
 
-        finally:
-            # Step 9 - Cleanup
-            print('Deletes')
-
-            # delete containers
-            for omf_container in omf_containers:
-                send_message_to_omf_endpoint(
-                    destination, "container", [omf_container], action = 'delete')
-            # delete types
-            for omf_type in omf_types:
-                send_message_to_omf_endpoint(destination, "type", [omf_type], action = 'delete')
-            
-            #checkDeletes()
-            print
-
+    print("done")
     return success
 
 
-main()
-print("done")
-
-# Straightforward test to make sure program is working without an error in program.  You can run it yourself with pytest program.py
-
-def test_main():
-    # Tests to make sure the sample runs as expected
-    main(True)
+if __name__ == '__main__':
+    main()
