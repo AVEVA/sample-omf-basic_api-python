@@ -1,0 +1,23 @@
+[
+  {
+    "destination-type": "OCS",
+    "resource": "https://dat-b.osisoft.com",
+    "namespace": "",
+    "tenant": "",
+    "client-id": "",
+    "client-secret": "",
+    "api-version": "v1"
+  },
+  {
+    "destination-type": "EDS",
+    "resource": "http://localhost:5590",
+    "api-version": "v1"
+  },
+  {
+    "destination-type": "PI",
+    "resource": "",
+    "data-server-name": "",
+    "username": "",
+    "password": ""
+  }
+]

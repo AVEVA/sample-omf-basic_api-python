@@ -24,6 +24,9 @@ import os
 # Global Variables
 # ************************************************************************
 
+# The version of the OMFmessages
+omfVersion = "1.1"
+
 # The application path. This is used for loading in configuration files
 app_path = None
 
@@ -32,26 +35,6 @@ destinations = None
 
 # List of possible destination types
 destination_types = ["OCS", "EDS", "PI"]
-
-# ************************************************************************
-# Specify options for sending web requests to the target PI System
-# ************************************************************************
-
-# The version of the OMFmessages
-omfVersion = "1.1"
-
-# Specify whether to compress OMF message before
-# sending it to ingress endpoint
-USE_COMPRESSION = False
-
-# Set this to the path of the certificate pem file if you using a self signed cert.
-# Set this to True if your cert is trusted by the Python certify.
-# Set to False if you do not want to check the certificate (NOT RECOMMENDED)
-VERIFY_SSL = True
-
-# Specify the timeout, in seconds, for sending web requests
-# (if it takes longer than this to send a message, an error will be thrown)
-WEB_REQUEST_TIMEOUT_SECONDS = 30
 
 # Token information
 __expiration = 0
@@ -80,7 +63,7 @@ def get_token(destination):
     discoveryUrl = requests.get(
         destination["resource"] + "/identity/.well-known/openid-configuration",
         headers={"Accept": "application/json"},
-        verify=VERIFY_SSL)
+        verify=destination["verify-ssl"])
 
     if discoveryUrl.status_code < 200 or discoveryUrl.status_code >= 300:
         discoveryUrl.close()
@@ -95,7 +78,7 @@ def get_token(destination):
         data={"client_id": destination["client-id"],
               "client_secret": destination["client-secret"],
               "grant_type": "client_credentials"},
-        verify=VERIFY_SSL)
+        verify=destination["verify-ssl"])
 
     token = json.loads(tokenInformation.content)
 
@@ -122,7 +105,7 @@ def send_message_to_omf_endpoint(destination, message_type, message_omf_json, ac
 
     # Compress json omf payload, if specified
     compression = 'none'
-    if USE_COMPRESSION:
+    if destination["use-compression"]:
         msg_body = gzip.compress(bytes(json.dumps(message_omf_json), 'utf-8'))
         compression = 'gzip'
     else:
@@ -140,8 +123,8 @@ def send_message_to_omf_endpoint(destination, message_type, message_omf_json, ac
             destination["omf-endpoint"],
             headers=msg_headers,
             data=msg_body,
-            verify=VERIFY_SSL,
-            timeout=WEB_REQUEST_TIMEOUT_SECONDS
+            verify=destination["verify-ssl"],
+            timeout=destination["web-request-timeout-seconds"]
         )
     # If the destination is EDS
     elif destinations_type == destination_types[1]:
@@ -149,7 +132,7 @@ def send_message_to_omf_endpoint(destination, message_type, message_omf_json, ac
             destination["omf-endpoint"],
             headers=msg_headers,
             data=msg_body,
-            timeout=WEB_REQUEST_TIMEOUT_SECONDS
+            timeout=destination["web-request-timeout-seconds"]
         )
     # If the destination is PI
     elif destinations_type == destination_types[2]:
@@ -157,8 +140,8 @@ def send_message_to_omf_endpoint(destination, message_type, message_omf_json, ac
             destination["omf-endpoint"],
             headers=msg_headers,
             data=msg_body,
-            verify=VERIFY_SSL,
-            timeout=WEB_REQUEST_TIMEOUT_SECONDS,
+            verify=destination["verify-ssl"],
+            timeout=destination["web-request-timeout-seconds"],
             auth=(destination["username"], destination["password"])
         )
 
@@ -206,7 +189,7 @@ def getHeaders(destination, compression="", message_type="", action=""):
         if(compression == "gzip"):
             msg_headers["compression"] = "gzip"
     # If the destination is PI
-    elif destination_type == destination_types[1]:
+    elif destination_type == destination_types[2]:
         msg_headers = {
             "x-requested-with": "xmlhttprequest",
             'messagetype': message_type,
@@ -218,150 +201,7 @@ def getHeaders(destination, compression="", message_type="", action=""):
             msg_headers["compression"] = "gzip"
 
     return msg_headers
-
-'''
-
-def checkValueGone(url):
-    # Sends the request out to the preconfigured endpoint..
-
-    global producerToken, sendingToOCS, username, password
-
-    # Assemble headers
-    msg_headers = getHeaders()
-
-    # Send the request, and collect the response
-    if sendingToOCS:
-        response = requests.get(
-            url,
-            headers=msg_headers,
-            verify=VERIFY_SSL,
-            timeout=WEB_REQUEST_TIMEOUT_SECONDS
-        )
-    else:
-        response = requests.get(
-            url,
-            headers=msg_headers,
-            verify=VERIFY_SSL,
-            timeout=WEB_REQUEST_TIMEOUT_SECONDS,
-            auth=(username, password)
-        )
-
-    # response code in 200s if the request was successful!
-    if response.status_code >= 200 and response.status_code < 300:
-        response.close()
-        print('Value found.  This is unexpected.  "{0}"'.format(
-            response.status_code))
-        print()
-        opId = response.headers["Operation-Id"]
-        status = response.status_code
-        reason = response.text
-        url = response.url
-        error = f"  {status}:{reason}.  URL {url}  OperationId {opId}"
-        raise Exception(f"Check message was failed. {error}")
-    return response.text
-
-
-def checkValue(url):
-    # Sends the request out to the preconfigured endpoint..
-
-    global producerToken, sendingToOCS, username, password
-
-    # Assemble headers
-    msg_headers = getHeaders()
-
-    # Send the request, and collect the response
-    if sendingToOCS:
-        response = requests.get(
-            url,
-            headers=msg_headers,
-            verify=VERIFY_SSL,
-            timeout=WEB_REQUEST_TIMEOUT_SECONDS
-        )
-    else:
-        response = requests.get(
-            url,
-            headers=msg_headers,
-            verify=VERIFY_SSL,
-            timeout=WEB_REQUEST_TIMEOUT_SECONDS,
-            auth=(username, password)
-        )
-
-    # response code in 200s if the request was successful!
-    if response.status_code < 200 or response.status_code >= 300:
-        response.close()
-        print('Response from endpoint was bad.  "{0}"'.format(
-            response.status_code))
-        print()
-        opId = response.headers["Operation-Id"]
-        status = response.status_code
-        reason = response.text
-        url = response.url
-        error = f"  {status}:{reason}.  URL {url}  OperationId {opId}"
-        raise Exception(f"OMF message was unsuccessful. {error}")
-    return response.text
-
-
-def checkDeletes():
-    global checkBase, dataServerName
-
-    print("Check Deletes")
-    time.sleep(2)
-
-    if(sendingToOCS):
-        checkValueGone(checkBase + '/Streams' + '/Container1')
-    else:
-        json1 = checkValue(checkBase + "/dataservers?name=" + dataServerName)
-        pointsURL = json.loads(json1)['Links']['Points']
-        json1 = checkValue(pointsURL + "?nameFilter=container1*")
-        links = json.loads(json1)['Links']
-        assert len(links) == 0
-
-
-def checkSends(lastVal):
-    global checkBase, dataServerName
-
-    print("Checks")
-
-    if(sendingToOCS):
-
-        # just getting back the type or stream means that it worked
-        json1 = checkValue(checkBase + '/Types' + '/FirstDynamicType')
-        # print(json1)
-        json1 = checkValue(checkBase + '/Streams' + '/Container1')
-        # print(json1)
-        json1 = checkValue(checkBase + '/Streams' +
-                           '/Container1' + '/Data/last')
-
-        # just checking to make sure some data made it it, could do a more comprhensive check but this is ok...
-        assert lastVal[0]['values'][0]['IntegerProperty'] == json.loads(json1)[
-            'IntegerProperty']
-
-    else:
-        # print(json1)
-        json1 = checkValue(checkBase + "/dataservers?name=" + dataServerName)
-        pointsURL = json.loads(json1)['Links']['Points']
-
-        json1 = checkValue(pointsURL + "?nameFilter=container1*")
-        endValueURL = json.loads(json1)['Items'][0]['Links']['Value']
-
-        json1 = checkValue(endValueURL)
-
-        # just checking to make sure some data made it it, could do a more comprhensive check but this is ok...
-        assert lastVal[0]['values'][0]['IntegerProperty'] == json.loads(json1)[
-            'Value']
-'''
-
-# ************************************************************************
-# Helper functions: REQUIRED: create a JSON message that contains data values
-# for all defined containerids
-#
-# Note: if you do not send one of the values for the container, Relay
-# will emit the default value for missing property - it is the default
-# behavior of JSON serialization; this might lead to undesireable
-# results: for example, putting a value of zero into referenced PI
-# point
-# ************************************************************************
-
+    
 
 def get_current_time():
     ''' Returns the current time'''
@@ -414,13 +254,13 @@ def get_json_file(filename):
 
 
 def get_config():
-    ''' Return the config.json as a config file, while also populating check_base and omf_endpoint'''
+    ''' Return the config.json as a config file, while also populating check_base, omf_endpoint, and default values'''
     global destination_types
 
     # Try to open the configuration file
     destinations = get_json_file("config.json")
 
-    # for each destination construct the check base and OMF endpoint
+    # for each destination construct the check base and OMF endpoint and populate default values
     for destination in destinations:
         destination_type = destination["destination-type"]
 
@@ -444,13 +284,17 @@ def get_config():
         destination["check-base"] = check_base
         destination["omf-endpoint"] = omf_endpoint
 
+        #check for optional/nullable parameters
+        if "verify-ssl" not in destination or destination["verify-ssl"] == None:
+            destination["verify-ssl"] = True
+
+        if "use-compression" not in destination or destination["use-compression"] == None:
+            destination["use-compression"] = False
+
+        if "web-request-timeout-seconds" not in destination or destination["web-request-timeout-seconds"] == None:
+            destination["web-request-timeout-seconds"] = 30
+            
     return destinations
-
-
-# ************************************************************************
-# Note: PI points will be created on the first data value message
-# arrived for a given container
-# ************************************************************************
 
 
 def main(test=False):
@@ -461,9 +305,6 @@ def main(test=False):
 
     # get the app_path
     app_path = os.path.dirname(os.path.abspath(__file__))
-
-    if not VERIFY_SSL:
-        print("You are not verifying the certificate of the end point.  This is not advised for any system as there are security issues with doing this.")
 
     # Step 1 - Read destination configurations from config.json
     destinations = get_config()
@@ -480,6 +321,9 @@ def main(test=False):
     # Send messages and check for each destination in config.json
     for destination in destinations:
         try:
+            if not destination["verify-ssl"]:
+                print("You are not verifying the certificate of the end point.  This is not advised for any system as there are security issues with doing this.")
+            
             get_token(destination)
 
             # Step 5 - Send OMF Types
@@ -534,7 +378,7 @@ def main(test=False):
 main()
 print("done")
 
-# Straightforward test to make sure program is working without an error in program.  Can run it yourself with pytest program.py
+# Straightforward test to make sure program is working without an error in program.  You can run it yourself with pytest program.py
 
 def test_main():
     # Tests to make sure the sample runs as expected
