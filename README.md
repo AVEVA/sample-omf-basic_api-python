@@ -17,23 +17,22 @@ To Run this Sample:
 1. Clone the GitHub repository
 1. Install required modules: `pip install -r requirements.txt`
 1. Open the folder with your favorite IDE
-1. Rename the placeholder config file [config.placeholder.ini](config.placeholder.ini) to `config.ini`
-1. Update `config.ini` with your credentials
-1. Check and update the program to ensure you are sending to OCS or PI.
-1. Run `program.py` from commandline run `python program.py`
+1. Rename the placeholder config file [config-placeholder.json](config-placeholder.json) to config.json
+1. Update config.json with the credentials for the enpoint(s) you want to send to. See [Configure endpoints and authentication](#configure-endpoints-and-authentication) below for additional details
+1. Run program.py
 
 To test the sample after running it:
 
-1. Run `python test.py`
+1. Run test.py
 
 or
 
 1. Install pytest `pip install pytest`
 1. Run `pytest program.py`
 
-## Configure constants for connecting and authentication
+## Configure endpoints and authentication
 
-The sample is configured using the file [config.placeholder.ini](config.placeholder.ini). Before editing, rename this file to `config.ini`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
+The sample is configured using the file [config-placeholder.json](config-placeholder.json). Before editing, rename this file to `config.json`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
 
 The SDS Service is secured by obtaining tokens from Azure Active Directory. Such clients provide a client application identifier and an associated secret (or key) that are authenticated against the directory. You must replace the placeholders in your `config.ini` file with the authentication-related values you received from OSIsoft.
 
