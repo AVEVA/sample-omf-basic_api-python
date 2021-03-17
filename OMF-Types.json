@@ -14,7 +14,8 @@
       },
       "IntegerProperty": {
         "type": "integer",
-        "description": "PI point data referenced integer attribute"
+        "description": "PI point data referenced integer attribute",
+        "uom": "count"
       }
     }
   },
@@ -34,12 +35,14 @@
       "NumberProperty1": {
         "type": "number",
         "description": "PI point data referenced number attribute 1",
-        "format": "float64"
+        "format": "float64",
+        "uom": "%"
       },
       "NumberProperty2": {
         "type": "number",
         "description": "PI point data referenced number attribute 2",
-        "format": "float64"
+        "format": "float64",
+        "uom": "V"
       },
       "StringEnum": {
         "type": "string",
