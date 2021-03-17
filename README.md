@@ -10,9 +10,8 @@ The sample code in this topic demonstrates how to send OMF messages using Python
 
 The samples were built and tested against Python 3. If you are using a different version you might encounter errors or unexepected behavior.
 
-To Run this Sample:
 
----
+## To Run this Sample:
 
 1. Clone the GitHub repository
 1. Install required modules: `pip install -r requirements.txt`
@@ -21,11 +20,12 @@ To Run this Sample:
 1. Update config.json with the credentials for the enpoint(s) you want to send to. See [Configure endpoints and authentication](#configure-endpoints-and-authentication) below for additional details
 1. Run program.py
 
-To test the sample after running it:
+## To test the sample after running it:
 
+### Option 1
 1. Run test.py
 
-or
+### Option 2
 
 1. Install pytest `pip install pytest`
 1. Run `pytest program.py`
