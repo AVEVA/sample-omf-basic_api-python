@@ -30,7 +30,19 @@ The samples were built and tested against Python 3. If you are using a different
 1. Install pytest `pip install pytest`
 1. Run `pytest program.py`
 
-## Configure endpoints and authentication
+## Customizing the Application
+This application can be customized to send your own custom types, containers, and data by modifying the [OMF-Types.json](OMF-Types.json), 
+[OMF-Containers.json](OMF-Containers.json), and [OMF-Data.json](OMF-Data.json) files respectively. Each one of these files contains an array of OMF json objects, which are
+created in the endpoints specified in [config.json](config-placeholder.json) when the application is run. For more information on forming OMF messages, please refer to our 
+[OMF version 1.1 documentation](https://omf-docs.osisoft.com/documentation_v11/Whats_New.html).  
+  
+In addition to modifying the json files mentioned above, the get_data function in [program.py](program.py) should be updated to populate the OMF data messages specified in 
+[OMF-Data.json](OMF-Data.json) with data from your data source.  
+  
+Finally, if there are any other activities that you would like to be running continuously, this logic can be added under the while loop in the main() function of 
+[program.py](program.py).
+
+## Configure Endpoints and Authentication
 
 The sample is configured using the file [config-placeholder.json](config-placeholder.json). Before editing, rename this file to `config.json`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
 
@@ -137,29 +149,6 @@ ClientId = REPLACE_WITH_APPLICATION_IDENTIFIER
 ClientSecret = REPLACE_WITH_APPLICATION_SECRET
 ```
 
-The PIServer will use the PI Web API as its OMF accepting endpoint. This is what the sample is tested against. Currently the only OMF supported endpoint for PI is the Connector Relay. These samples have not been tested against this.
-
-To configure the sample to work against PI update the `config.ini` to have only these parameters and update that parameter values to what is being used.
-
-Note: the tenantId is used to autodetect if you are going against OCS or PI, so make sure that is removed if going against PI.
-
-```ini
-[Configurations]
-DataServerName = REPLACE_WITH_PI_DATA_ARCHIVE_NAME
-
-[Access]
-Resource = REPLACE_WITH_PI_WEB_API_URL
-```
-
-See the general readme for information on setting up your endpoint.
-
-If your client computer Python does not trust the PI Web API certificate you will see an error like:
-
-```shell
-requests.exceptions.SSLError: HTTPSConnectionPool(host='...', port=443): Max retries exceeded with url: /piwebapi/omf (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self signed certificate (_ssl.c:1051)')))
-```
-
----
 
 For the main OMF basic samples page on master [ReadMe](https://github.com/osisoft/OSI-Samples-OMF/blob/master/docs/OMF_BASIC_README.md)  
 For the main OMF samples page on master [ReadMe](https://github.com/osisoft/OSI-Samples-OMF)  
