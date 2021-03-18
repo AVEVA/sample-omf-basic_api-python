@@ -129,27 +129,7 @@ The format of the configuration for a PI endpoint is shown below along with desc
 | use-compression             | optional | boolean/string | A feature flag for enabling compression on messages sent to the OCS endpoint                                                                                                               |
 | web-request-timeout-seconds | optional | integer        | An optional timeout setting for web requests                                                                                                                     |
 
-
-The SDS Service is secured by obtaining tokens from Azure Active Directory. Such clients provide a client application identifier and an associated secret (or key) that are authenticated against the directory. You must replace the placeholders in your `config.ini` file with the authentication-related values you received from OSIsoft.
-
-The values to be replaced are in `config.ini`:
-
-```ini
-[Configurations]
-Namespace = Samples
-
-[Access]
-Resource = https://dat-b.osisoft.com
-Tenant = REPLACE_WITH_TENANT_ID
-ApiVersion = v1
-
-[Credentials]
-ProducerToken = REPLACE_WITH_TOKEN_STRING
-ClientId = REPLACE_WITH_APPLICATION_IDENTIFIER
-ClientSecret = REPLACE_WITH_APPLICATION_SECRET
-```
-
-
+---
 For the main OMF basic samples page on master [ReadMe](https://github.com/osisoft/OSI-Samples-OMF/blob/master/docs/OMF_BASIC_README.md)  
 For the main OMF samples page on master [ReadMe](https://github.com/osisoft/OSI-Samples-OMF)  
 For the main OSIsoft samples page on master [ReadMe](https://github.com/osisoft/OSI-Samples)
