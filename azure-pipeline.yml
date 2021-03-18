@@ -40,7 +40,7 @@ variables:
     value: product-readiness.omf_api_python.ocs.json
   - name: CredFileLibraryOP
     value: product-readiness.omf_api_python.pi.json
-  - name: analysisProject
+  - name: CredFileLibraryEDS
     value: product-readiness.omf_api_python.eds.json
   - name: analysisProject
     value: OMF_API_Python
