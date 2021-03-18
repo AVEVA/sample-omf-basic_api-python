@@ -35,13 +35,13 @@ variables:
   - name: projPath
     value: '/'
   - name: CredFile
-    value: config.ini
+    value: config.json
   - name: CredFileLibrary
-    value: product-readiness.omf_api_python.ocs.json
+    value: product-readines.omf-basic_api-python.json
   - name: CredFileLibraryOP
-    value: product-readiness.omf_api_python.pi.json
+    value: product-readines.omf-basic_api-python.pi.json
   - name: CredFileLibraryEDS
-    value: product-readiness.omf_api_python.eds.json
+    value: product-readines.omf-basic_api-python.eds.json
   - name: analysisProject
     value: OMF_API_Python
 
