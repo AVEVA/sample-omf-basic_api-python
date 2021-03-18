@@ -37,9 +37,11 @@ variables:
   - name: CredFile
     value: config.ini
   - name: CredFileLibrary
-    value: product-readiness.omf_api_python.ocs.ini
+    value: product-readiness.omf_api_python.ocs.json
   - name: CredFileLibraryOP
-    value: product-readiness.omf_api_python.onprem.ini
+    value: product-readiness.omf_api_python.pi.json
+  - name: analysisProject
+    value: product-readiness.omf_api_python.eds.json
   - name: analysisProject
     value: OMF_API_Python
 
@@ -91,7 +93,26 @@ jobs:
       - script: python ./test.py
         workingDirectory: '$(Build.SourcesDirectory)$(projPath)'
         displayName: 'Run tests'
+      
+  - job: Tests_EDS
+    pool:
+      name: 00-OSIManaged-Test
+      demands: COMPUTERNAME -equals $(buildAgent)
+    steps:
+      - template: '/miscellaneous/build_templates/config.yml@templates'
+        parameters:
+          fileOriginal: $(CredFile)
+          fileLibrary: $(CredFileLibraryEDS)
+          filePath: $(projPath)
 
+      - script: pip install -r requirements.txt
+        workingDirectory: '$(Build.SourcesDirectory)$(projPath)'
+        displayName: 'Install requirements'
+
+      - script: python ./test.py
+        workingDirectory: '$(Build.SourcesDirectory)$(projPath)'
+        displayName: 'Run tests'
+  
   - template: '/miscellaneous/build_templates/analysis.yml@templates'
     parameters:
       language: python
