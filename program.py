@@ -36,10 +36,6 @@ endpoints = None
 # List of possible endpoint types
 endpoint_types = ["OCS", "EDS", "PI"]
 
-# Token information
-__expiration = 0
-__token = ""
-
 # Holders for data message values
 boolean_value_1 = 0
 boolean_value_2 = 1
@@ -52,15 +48,13 @@ boolean_value_2 = 1
 def get_token(endpoint):
     '''Gets the token for the omfendpoint'''
 
-    global __expiration, __token
-
     endpoint_type = endpoint["endpoint-type"]
     # return an empty string if the endpoint is not an OCS type
     if endpoint_type != endpoint_types[0]:
         return ""
 
-    if ((__expiration - time.time()) > 5 * 60):
-        return __token
+    if (("expiration" in endpoint) and (endpoint["expiration"] - time.time()) > 5 * 60):
+        return endpoint["token"]
 
     # we can't short circuit it, so we must go retreive it.
 
@@ -91,6 +85,11 @@ def get_token(endpoint):
 
     __expiration = float(token['expires_in']) + time.time()
     __token = token['access_token']
+
+    # cache the results
+    endpoint["expiration"] = __expiration
+    endpoint["token"] = __token
+    
     return __token
 
 
