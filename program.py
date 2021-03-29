@@ -183,7 +183,6 @@ def get_headers(endpoint, compression="", message_type="", action=""):
     # If the endpoint is EDS
     elif endpoint_type == endpoint_types[1]:
         msg_headers = {
-            "Content-Type": "application/json",
             'messagetype': message_type,
             'action': action,
             'messageformat': 'JSON',

@@ -47,17 +47,17 @@ def check_creations(self):
                     response = send_get_request_to_endpoint(
                         endpoint, base=points_URL, path=f"?nameFilter={omf_container['id']}*")
                     # get end value URLs
-                    end_value_URL = json.loads(response.text)[
-                        'Items'][0]['Links']['Value']
-                    # retrieve data
-                    response = send_get_request_to_endpoint(
-                        endpoint, base=end_value_URL)
-                    end_value = json.loads(response.text)["Value"]
-                    # check that the response was good and that data was written to the point
-                    if response.status_code < 200 or response.status_code >= 300:
-                        success = False
-                    if isinstance(end_value, dict) and "Name" in end_value and end_value["Name"] == "Pt Created":
-                        success = False
+                    for item in json.loads(response.text)['Items']:
+                        end_value_URL = item['Links']['Value']
+                        # retrieve data
+                        response = send_get_request_to_endpoint(
+                            endpoint, base=end_value_URL)
+                        end_value = json.loads(response.text)["Value"]
+                        # check that the response was good and that data was written to the point
+                        if response.status_code < 200 or response.status_code >= 300:
+                            success = False
+                        if isinstance(end_value, dict) and "Name" in end_value and end_value["Name"] == "Pt Created":
+                            success = False
 
             else:
                 # retrieve types and check response
@@ -78,7 +78,7 @@ def check_creations(self):
                 for omf_datum in omf_data:
                     response = send_get_request_to_endpoint(
                         endpoint, path=f"/Streams/{omf_datum['containerid']}/Data/last")
-                    if response.text == "":
+                    if response.text == "" or (response.status_code < 200 or response.status_code >= 300):
                         success = False
 
         except Exception as ex:
