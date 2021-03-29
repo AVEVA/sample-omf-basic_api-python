@@ -57,9 +57,18 @@ jobs:
           echo Install requirements
           call pip install -r requirements.txt
           echo Run tests
-          call python -m pytest ./program.py
+          python -m pytest ./test.py --junitxml=junit/test-results.xml 
           echo Complete
         displayName: 'Run tests'
+        
+      - task: PublishTestResults@2
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFiles: '**/test-*.xml'
+          failTaskOnFailedTests: true
+          testRunTitle: '$(Agent.JobName) on $(Agent.OS)'
+        displayName: 'Publish test results'
+        
   - job: Tests_OnPrem
     pool:
       name: 00-OSIManaged-Test
@@ -83,6 +92,7 @@ jobs:
           failTaskOnFailedTests: true
           testRunTitle: '$(Agent.JobName) on $(Agent.OS)'
         displayName: 'Publish test results'
+        
   - job: Tests_EDS
     pool:
       name: 00-OSIManaged-Test
@@ -96,7 +106,7 @@ jobs:
       - script: pip install -r requirements.txt
         displayName: 'Install requirements'
 
-      - script: python ./test.py
+      - script: python pytest --junitxml=junit/test-results.xml ./test.py
         displayName: 'Run tests'
 
       - task: PublishTestResults@2
