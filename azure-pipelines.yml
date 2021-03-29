@@ -27,11 +27,13 @@ resources:
 variables:
   - template: '/miscellaneous/build_templates/variables.yml@templates'
   - name: CredFile
-    value: config.ini
+    value: config.json
   - name: CredFileLibrary
-    value: product-readiness.omf_api_python.ocs.ini
+    value: product-readines.omf-basic_api-python.json
   - name: CredFileLibraryOP
-    value: product-readiness.omf_api_python.onprem.ini
+    value: product-readines.omf-basic_api-python.pi.json
+  - name: CredFileLibraryEDS
+    value: product-readines.omf-basic_api-python.eds.json
   - name: analysisProject
     value: OMF_API_Python
 
