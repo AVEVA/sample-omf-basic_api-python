@@ -20,7 +20,7 @@ The samples were built and tested against Python 3. If you are using a different
 1. Update config.json with the credentials for the enpoint(s) you want to send to. See [Configure endpoints and authentication](#configure-endpoints-and-authentication) below for additional details
 1. Run program.py
 
-## To Test the Sample After Running It:
+## To Test this Sample:
 
 ### Option 1
 1. Run test.py
