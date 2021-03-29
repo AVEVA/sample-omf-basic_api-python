@@ -29,7 +29,7 @@ variables:
   - name: CredFile
     value: config.json
   - name: CredFileLibrary
-    value: product-readines.omf-basic_api-python.json
+    value: product-readines.omf-basic_api-python.ocs.json
   - name: CredFileLibraryOP
     value: product-readines.omf-basic_api-python.pi.json
   - name: CredFileLibraryEDS
