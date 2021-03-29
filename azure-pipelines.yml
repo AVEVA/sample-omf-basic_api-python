@@ -2,64 +2,49 @@ trigger:
   batch: true
   branches:
     include:
-      - master
-  paths:
-    include:
-      - '/'
+      - main
 
 pr:
   branches:
     include:
-      - master
-  paths:
-    include:
-      - '/'
+      - main
 
 schedules:
   - cron: '0 0 * * 0'
     displayName: Weekly build
     branches:
       include:
-        - master
+        - main
     always: true
 
 resources:
   repositories:
-  - repository: templates
-    type: github
-    name: osisoft/OSI-Samples
-    endpoint: osisoft/OSI-Samples
+    - repository: templates
+      type: github
+      name: osisoft/OSI-Samples
+      endpoint: osisoft/OSI-Samples
 
 variables:
   - template: '/miscellaneous/build_templates/variables.yml@templates'
-  - name: projPath
-    value: '/'
   - name: CredFile
-    value: config.json
+    value: config.ini
   - name: CredFileLibrary
-    value: product-readines.omf-basic_api-python.json
+    value: product-readiness.omf_api_python.ocs.ini
   - name: CredFileLibraryOP
-    value: product-readines.omf-basic_api-python.pi.json
-  - name: CredFileLibraryEDS
-    value: product-readines.omf-basic_api-python.eds.json
+    value: product-readiness.omf_api_python.onprem.ini
   - name: analysisProject
     value: OMF_API_Python
 
 jobs:
   - job: Tests_OCS
     pool:
-      vmImage: 'ubuntu-16.04'
+      name: 00-OSIManaged-Containers
+      demands: Agent.OS -equals Linux
     steps:
       - template: '/miscellaneous/build_templates/config.yml@templates'
         parameters:
           fileOriginal: $(CredFile)
           fileLibrary: $(CredFileLibrary)
-          filePath: $(projPath)
-
-      - task: UsePythonVersion@0
-        inputs:
-          versionSpec: '3.6'
-          architecture: 'x64'
 
       - script: |
           echo Install tools
@@ -72,9 +57,7 @@ jobs:
           echo Run tests
           call python -m pytest ./program.py
           echo Complete
-        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
         displayName: 'Run tests'
-
   - job: Tests_OnPrem
     pool:
       name: 00-OSIManaged-Test
@@ -84,16 +67,20 @@ jobs:
         parameters:
           fileOriginal: $(CredFile)
           fileLibrary: $(CredFileLibraryOP)
-          filePath: $(projPath)
 
       - script: pip install -r requirements.txt
-        workingDirectory: '$(Build.SourcesDirectory)$(projPath)'
         displayName: 'Install requirements'
 
-      - script: python ./test.py
-        workingDirectory: '$(Build.SourcesDirectory)$(projPath)'
+      - script: python -m pytest --junitxml=junit/test-results.xml ./test.py
         displayName: 'Run tests'
-      
+
+      - task: PublishTestResults@2
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFiles: '**/test-*.xml'
+          failTaskOnFailedTests: true
+          testRunTitle: '$(Agent.JobName) on $(Agent.OS)'
+        displayName: 'Publish test results'
   - job: Tests_EDS
     pool:
       name: 00-OSIManaged-Test
@@ -103,16 +90,26 @@ jobs:
         parameters:
           fileOriginal: $(CredFile)
           fileLibrary: $(CredFileLibraryEDS)
-          filePath: $(projPath)
 
       - script: pip install -r requirements.txt
-        workingDirectory: '$(Build.SourcesDirectory)$(projPath)'
         displayName: 'Install requirements'
 
       - script: python ./test.py
-        workingDirectory: '$(Build.SourcesDirectory)$(projPath)'
         displayName: 'Run tests'
-  
-  - template: '/miscellaneous/build_templates/analysis.yml@templates'
-    parameters:
-      language: python
+
+      - task: PublishTestResults@2
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFiles: '**/test-*.xml'
+          failTaskOnFailedTests: true
+          testRunTitle: '$(Agent.JobName) on $(Agent.OS)'
+        displayName: 'Publish test results'
+
+  - job: Analysis
+    pool:
+      name: 00-OSIManaged-Containers
+      demands: Agent.OS -equals Windows_NT
+    steps:
+      - template: '/miscellaneous/build_templates/analysis.yml@templates'
+        parameters:
+          useRequirementsTxt: true
