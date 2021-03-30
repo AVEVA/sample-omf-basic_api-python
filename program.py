@@ -7,18 +7,15 @@
 # Import necessary packages
 # ************************************************************************
 
-import configparser
 import json
 import time
 import datetime
-import platform
-import socket
 import gzip
 import random
 import requests
 import traceback
-import base64
 import os
+from urllib.parse import urlparse
 
 # ************************************************************************
 # Global Variables
@@ -70,9 +67,13 @@ def get_token(endpoint):
         raise ValueError
 
     tokenEndpoint = json.loads(discoveryUrl.content)["token_endpoint"]
+    tokenUrl = urlparse(tokenEndpoint)
+    # Validate URL
+    assert tokenUrl.scheme == 'https'
+    assert tokenUrl.geturl().startswith(endpoint["resource"])
 
     tokenInformation = requests.post(
-        tokenEndpoint,
+        tokenUrl.geturl(),
         data={"client_id": endpoint["client-id"],
               "client_secret": endpoint["client-secret"],
               "grant_type": "client_credentials"},
