@@ -202,7 +202,14 @@ def get_headers(endpoint, compression="", message_type="", action=""):
         if(compression == "gzip"):
             msg_headers["compression"] = "gzip"
 
-    return msg_headers
+    # validate headers to prevent injection attacks
+    validated_headers = {}
+
+    for key in msg_headers:
+        if key in {'Authorization', 'messagetype', 'action', 'messageformat', 'omfversion', 'x-requested-with'}:
+            validated_headers[key] = msg_headers[key]
+
+    return validated_headers
 
 
 # ************************************************************************
