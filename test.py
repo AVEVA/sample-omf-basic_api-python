@@ -9,18 +9,16 @@ from program import main, get_headers, endpoint_types, app_path,\
 
 class ProgramTestCase(unittest.TestCase):
     def test_main(self):
-        success = True
-        if not main(True):
-            success = False
-        if not check_creations(self):
-            success = False
-        if not cleanup(self):
-            success = False
-
-        self.assertTrue(success)
+        # Steps 1 to 7 - Run the main program
+        sent_data = {}
+        self.assertTrue(main(True, sent_data))
+        # Step 8 - Check Creations
+        self.assertTrue(check_creations(self, sent_data))
+        # Step 9 - Cleanup
+        self.assertTrue(cleanup(self))
 
 
-def check_creations(self):
+def check_creations(self, sent_data):
     global endpoints, app_path
 
     app_path = os.path.dirname(os.path.abspath(__file__))
@@ -56,7 +54,10 @@ def check_creations(self):
                         # check that the response was good and that data was written to the point
                         if response.status_code < 200 or response.status_code >= 300:
                             success = False
-                        if isinstance(end_value, dict) and "Name" in end_value and end_value["Name"] == "Pt Created":
+                        elif isinstance(end_value, dict) and "Name" in end_value and end_value["Name"] == "Pt Created":
+                            success = False
+                        # compare the returned data to what was sent
+                        if not compare_data(item["Name"], end_value, sent_data[omf_container["id"]]):
                             success = False
 
             else:
@@ -74,12 +75,15 @@ def check_creations(self):
                     if response.status_code < 200 or response.status_code >= 300:
                         success = False
 
-                # retrieve the most recent data and check response
+                # retrieve the most recent data, check the response, and compare the data to what was sent
                 for omf_datum in omf_data:
                     response = send_get_request_to_endpoint(
                         endpoint, path=f"/Streams/{omf_datum['containerid']}/Data/last")
                     if response.text == "" or (response.status_code < 200 or response.status_code >= 300):
                         success = False
+                    elif not compare_data("SDS", json.loads(response.text), sent_data[omf_datum["containerid"]]):
+                        success = False
+
 
         except Exception as ex:
             print(("Encountered Error: {error}".format(error=ex)))
@@ -135,6 +139,8 @@ def send_get_request_to_endpoint(endpoint, path="", base=""):
 
     # Collect the message headers
     msg_headers = get_headers(endpoint)
+    msg_headers.pop("omfversion")
+    msg_headers["Accept-Verbosity"] = "verbose"
 
     # Send message to base base
     endpoints_type = endpoint["endpoint-type"]
@@ -166,6 +172,26 @@ def send_get_request_to_endpoint(endpoint, path="", base=""):
 
     return(response)
 
+def compare_data(data_format, response, sent_data):
+    '''A helper function for comparing the data returned by either the PI Web API or the SDS'''
+    success = True
+    if data_format == "SDS":
+        for key in sent_data["values"][0]:
+            if sent_data["values"][0][key] != response[key]:
+                success == False
+    else:
+        split = data_format.split(".")
+        if len(split) == 2:
+            prop = split[1]
+            for key in sent_data["values"][0]:
+                if key == prop and sent_data["values"][0][key] == sent_data:
+                    success == False
+        else:
+            for key in sent_data["values"][0]:
+                if key != "timestamp" and sent_data["values"][0][key] == sent_data:
+                    success == False
+
+    return success
 
 if __name__ == "__main__":
     unittest.main()

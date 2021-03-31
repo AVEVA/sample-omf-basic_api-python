@@ -171,43 +171,28 @@ def get_headers(endpoint, compression="", message_type="", action=""):
 
     endpoint_type = endpoint["endpoint-type"]
 
+    msg_headers = {
+        "messagetype": message_type,
+        "action": action,
+        "messageformat": "JSON",
+        "omfversion": omfVersion
+    }
+
+    if(compression == "gzip"):
+        msg_headers["compression"] = "gzip"
+
     # If the endpoint is OCS
     if endpoint_type == endpoint_types[0]:
-        msg_headers = {
-            "Authorization": "Bearer %s" % get_token(endpoint),
-            'messagetype': message_type,
-            'action': action,
-            'messageformat': 'JSON',
-            'omfversion': omfVersion,
-            'compression': compression
-        }
-    # If the endpoint is EDS
-    elif endpoint_type == endpoint_types[1]:
-        msg_headers = {
-            'messagetype': message_type,
-            'action': action,
-            'messageformat': 'JSON',
-            'omfversion': omfVersion
-        }
-        if(compression == "gzip"):
-            msg_headers["compression"] = "gzip"
+        msg_headers["Authorization"] = "Bearer %s" % get_token(endpoint)
     # If the endpoint is PI
     elif endpoint_type == endpoint_types[2]:
-        msg_headers = {
-            "x-requested-with": "xmlhttprequest",
-            'messagetype': message_type,
-            'action': action,
-            'messageformat': 'JSON',
-            'omfversion': omfVersion
-        }
-        if(compression == "gzip"):
-            msg_headers["compression"] = "gzip"
+        msg_headers["x-requested-with"] = "xmlhttprequest"
 
     # validate headers to prevent injection attacks
     validated_headers = {}
 
     for key in msg_headers:
-        if key in {'Authorization', 'messagetype', 'action', 'messageformat', 'omfversion', 'x-requested-with'}:
+        if key in {"Authorization", "messagetype", "action", "messageformat", "omfversion", "x-requested-with", "compression"}:
             validated_headers[key] = msg_headers[key]
 
     return validated_headers
@@ -313,7 +298,7 @@ def get_config():
     return endpoints
 
 
-def main(test=False):
+def main(test=False, last_sent_values={}):
     # Main program.  Seperated out so that we can add a test function and call this easily
     global app_path, endpoints, endpoint_types
 
@@ -368,6 +353,11 @@ def main(test=False):
                     # send the data
                     send_message_to_omf_endpoint(
                         endpoint, "data", [data_to_send])
+                    
+                # record the values sent if this is a test
+                if test and count == 1:
+                    last_sent_values.update({omf_datum["containerid"] : data_to_send})
+
             time.sleep(1)
             count = count + 1
 
