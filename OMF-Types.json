@@ -4,13 +4,13 @@
     "name": "First dynamic type",
     "classification": "dynamic",
     "type": "object",
-    "description": "not in use",
+    "description": "This is the first dynamic type",
     "properties": {
       "timestamp": {
         "format": "date-time",
         "type": "string",
         "isindex": true,
-        "description": "not in use"
+        "description": "Timestamp property as index"
       },
       "IntegerProperty": {
         "type": "integer",
@@ -24,13 +24,13 @@
     "name": "Second dynamic type",
     "classification": "dynamic",
     "type": "object",
-    "description": "not in use",
+    "description": "This is the second dynamic type",
     "properties": {
       "timestamp": {
         "format": "date-time",
         "type": "string",
         "isindex": true,
-        "description": "not in use"
+        "description": "Timestamp property as index"
       },
       "NumberProperty1": {
         "type": "number",
@@ -56,13 +56,13 @@
     "name": "Third dynamic type",
     "classification": "dynamic",
     "type": "object",
-    "description": "not in use",
+    "description": "This is the third dynamic type",
     "properties": {
       "timestamp": {
         "format": "date-time",
         "type": "string",
         "isindex": true,
-        "description": "not in use"
+        "description": "Timestamp property as index"
       },
       "IntegerEnum": {
         "type": "integer",
