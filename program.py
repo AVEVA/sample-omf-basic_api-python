@@ -278,6 +278,10 @@ def get_config():
         # If the endpoint is PI
         elif endpoint_type == endpoint_types[2]:
             base_endpoint = endpoint["resource"]
+              
+        else:
+              raise ValueError("Invalid endpoint type")
+              
 
         omf_endpoint = f"{base_endpoint}/omf"
 
@@ -290,7 +294,7 @@ def get_config():
             endpoint["verify-ssl"] = True
 
         if "use-compression" not in endpoint or endpoint["use-compression"] == None:
-            endpoint["use-compression"] = False
+            endpoint["use-compression"] = True
 
         if "web-request-timeout-seconds" not in endpoint or endpoint["web-request-timeout-seconds"] == None:
             endpoint["web-request-timeout-seconds"] = 30
