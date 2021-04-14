@@ -1,6 +1,6 @@
 # Version History
 
-## 2.0.0 / 2021-03-29
+## 2.0.0 / 2021-04-14
 
 - Updated sample to make simpler and more readable
 
