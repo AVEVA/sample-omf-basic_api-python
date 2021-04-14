@@ -336,7 +336,11 @@ def main(test=False, last_sent_values={}):
             for omf_container in omf_containers:
                 send_message_to_omf_endpoint(
                     endpoint, "container", [omf_container])
+    
+    except Exception as ex:
+        print(("Encountered Error: {error}".format(error=ex)))
 
+    try:
         # Step 7 - Send OMF Data
         count = 0
         # send data to all endpoints forever if this is not a test
