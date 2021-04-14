@@ -328,6 +328,9 @@ def main(test=False, last_sent_values={}):
     try:
         # Send out the messages that only need to be sent once
         for endpoint in endpoints:
+            if not endpoint["verify-ssl"]:
+                print("You are not verifying the certificate of the end point.  This is not advised for any system as there are security issues with doing this.")
+
             # Step 5 - Send OMF Types
             for omf_type in omf_types:
                 send_message_to_omf_endpoint(endpoint, "type", [omf_type])
