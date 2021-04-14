@@ -344,7 +344,6 @@ def main(test=False, last_sent_values={}):
 
         # Step 7 - Send OMF Data
         count = 0
-        time.sleep(1)
         # send data to all endpoints forever if this is not a test
         while not test or count < 2:
 
