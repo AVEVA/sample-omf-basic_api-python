@@ -52,11 +52,14 @@ def check_creations(self, sent_data):
                         end_value = json.loads(response.text)["Value"]
                         # check that the response was good and that data was written to the point
                         if response.status_code < 200 or response.status_code >= 300:
+                            print(f"Unable to find item {item}")
                             success = False
                         elif isinstance(end_value, dict) and "Name" in end_value and end_value["Name"] == "Pt Created":
+                            print(f"Item {item} has no recorded data")
                             success = False
                         # compare the returned data to what was sent
                         if not compare_data(item["Name"], end_value, sent_data[omf_container["id"]]):
+                            print(f"Data in item {item} does match what was sent")
                             success = False
 
             else:
@@ -65,6 +68,7 @@ def check_creations(self, sent_data):
                     response = send_get_request_to_endpoint(
                         endpoint, path=f"/Types/{omf_type['id']}")
                     if response.status_code < 200 or response.status_code >= 300:
+                        print(f"Unable to find type {omf_type}")
                         success = False
 
                 # retrieve containers and check response
@@ -72,6 +76,7 @@ def check_creations(self, sent_data):
                     response = send_get_request_to_endpoint(
                         endpoint, path=f"/Streams/{omf_container['id']}")
                     if response.status_code < 200 or response.status_code >= 300:
+                        print(f"Unable to find continer {omf_container}")
                         success = False
 
                 # retrieve the most recent data, check the response, and compare the data to what was sent
@@ -79,8 +84,10 @@ def check_creations(self, sent_data):
                     response = send_get_request_to_endpoint(
                         endpoint, path=f"/Streams/{omf_datum['containerid']}/Data/last")
                     if response.text == "" or (response.status_code < 200 or response.status_code >= 300):
+                        print(f"Unable to find data {omf_datum}")
                         success = False
                     elif not compare_data("SDS", json.loads(response.text), sent_data[omf_datum["containerid"]]):
+                        print(f"Data in {omf_datum} does not match what was sent")
                         success = False
 
 
