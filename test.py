@@ -9,8 +9,6 @@ from program import main, get_headers, endpoint_types, \
 
 class ProgramTestCase(unittest.TestCase):
     def test_main(self):
-        # Run a cleanup in case the test environment was not fully cleaned
-        cleanup(self)
         # Steps 1 to 7 - Run the main program
         sent_data = {}
         self.assertTrue(main(True, sent_data))
