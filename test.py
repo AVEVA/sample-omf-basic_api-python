@@ -3,25 +3,26 @@ import traceback
 import requests
 import json
 import os
-from program import main, get_headers, endpoint_types, app_path,\
+from program import main, get_headers, endpoint_types, \
     endpoints, get_json_file, send_message_to_omf_endpoint, get_config
 
 
 class ProgramTestCase(unittest.TestCase):
     def test_main(self):
+        # Run a cleanup in case the test environment was not fully cleaned
+        cleanup(self)
         # Steps 1 to 7 - Run the main program
         sent_data = {}
-        #self.assertTrue(main(True, sent_data))
+        self.assertTrue(main(True, sent_data))
         # Step 8 - Check Creations
-        #self.assertTrue(check_creations(self, sent_data))
+        self.assertTrue(check_creations(self, sent_data))
         # Step 9 - Cleanup
         self.assertTrue(cleanup(self))
 
 
 def check_creations(self, sent_data):
-    global endpoints, app_path
+    global endpoints
 
-    app_path = os.path.dirname(os.path.abspath(__file__))
     endpoints = get_config()
     omf_types = get_json_file("OMF-Types.json")
     omf_containers = get_json_file("OMF-Containers.json")
@@ -97,9 +98,8 @@ def check_creations(self, sent_data):
 
 
 def cleanup(self):
-    global endpoints, app_path
+    global endpoints
 
-    app_path = os.path.dirname(os.path.abspath(__file__))
     endpoints = get_config()
     omf_types = get_json_file("OMF-Types.json")
     omf_containers = get_json_file("OMF-Containers.json")

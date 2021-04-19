@@ -24,9 +24,6 @@ from urllib.parse import urlparse
 # The version of the OMFmessages
 omfVersion = "1.1"
 
-# The application path. This is used for loading in configuration files
-app_path = None
-
 # The configurations of the endpoints to send to
 endpoints = None
 
@@ -144,6 +141,10 @@ def send_message_to_omf_endpoint(endpoint, message_type, message_omf_json, actio
             auth=(endpoint["username"], endpoint["password"])
         )
 
+    # Check for 409, which indicates that a type with the specified ID and version already exists.
+    if response.status_code == 409:
+        return
+
     # response code in 200s if the request was successful!
     if response.status_code < 200 or response.status_code >= 300:
         print(msg_headers)
@@ -232,12 +233,11 @@ def get_current_time():
 
 def get_json_file(filename):
     ''' Get a json file by the path specified relative to the application's path'''
-    global app_path
 
     # Try to open the configuration file
     try:
         with open(
-            f"{app_path}/{filename}",
+            filename,
             "r",
         ) as f:
             loaded_json = json.load(f)
@@ -299,12 +299,9 @@ def get_config():
 
 def main(test=False, last_sent_values={}):
     # Main program.  Seperated out so that we can add a test function and call this easily
-    global app_path, endpoints, endpoint_types
+    global endpoints, endpoint_types
 
     success = True
-
-    # get the app_path
-    app_path = os.path.dirname(os.path.abspath(__file__))
 
     # Step 1 - Read endpoint configurations from config.json
     endpoints = get_config()
