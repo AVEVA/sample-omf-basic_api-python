@@ -6,7 +6,7 @@
     "type": "object",
     "description": "This is the first dynamic type",
     "properties": {
-      "timestamp": {
+      "Timestamp": {
         "format": "date-time",
         "type": "string",
         "isindex": true,
@@ -26,7 +26,7 @@
     "type": "object",
     "description": "This is the second dynamic type",
     "properties": {
-      "timestamp": {
+      "Timestamp": {
         "format": "date-time",
         "type": "string",
         "isindex": true,
@@ -58,7 +58,7 @@
     "type": "object",
     "description": "This is the third dynamic type",
     "properties": {
-      "timestamp": {
+      "Timestamp": {
         "format": "date-time",
         "type": "string",
         "isindex": true,

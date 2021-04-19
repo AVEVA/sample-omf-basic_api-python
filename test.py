@@ -188,7 +188,7 @@ def compare_data(data_format, response, sent_data):
                     success = False
         else:
             for key in sent_data["values"][0]:
-                if key != "timestamp" and sent_data["values"][0][key] == sent_data:
+                if key != "Timestamp" and sent_data["values"][0][key] == sent_data:
                     success = False
 
     return success

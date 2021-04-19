@@ -3,7 +3,7 @@
     "containerid": "Container1",
     "values": [
       {
-        "timestamp": null,
+        "Timestamp": null,
         "IntegerProperty": null
       }
     ]
@@ -12,7 +12,7 @@
     "containerid": "Container2",
     "values": [
       {
-        "timestamp": null,
+        "Timestamp": null,
         "IntegerProperty": null
       }
     ]
@@ -21,7 +21,7 @@
     "containerid": "Container3",
     "values": [
       {
-        "timestamp": null,
+        "Timestamp": null,
         "NumberProperty1": null,
         "NumberProperty2": null,
         "StringEnum": null
@@ -32,7 +32,7 @@
     "containerid": "Container4",
     "values": [
       {
-        "timestamp": null,
+        "Timestamp": null,
         "IntegerEnum": null
       }
     ]

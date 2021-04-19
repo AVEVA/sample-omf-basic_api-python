@@ -62,9 +62,8 @@ def get_token(endpoint):
 
     if discoveryUrl.status_code < 200 or discoveryUrl.status_code >= 300:
         discoveryUrl.close()
-        print("Failed to get access token endpoint from discovery URL: {status}:{reason}".
+        raise Exception("Failed to get access token endpoint from discovery URL: {status}:{reason}".
               format(status=discoveryUrl.status_code, reason=discoveryUrl.text))
-        raise ValueError
 
     tokenEndpoint = json.loads(discoveryUrl.content)["token_endpoint"]
     tokenUrl = urlparse(tokenEndpoint)
@@ -145,10 +144,6 @@ def send_message_to_omf_endpoint(endpoint, message_type, message_omf_json, actio
             auth=(endpoint["username"], endpoint["password"])
         )
 
-    # Check the response
-    if response.status_code == 409:
-        return
-
     # response code in 200s if the request was successful!
     if response.status_code < 200 or response.status_code >= 300:
         print(msg_headers)
@@ -209,19 +204,19 @@ def get_data(data):
     global boolean_value_1, boolean_value_2
 
     if data["containerid"] == "Container1" or data["containerid"] == "Container2":
-        data["values"][0]["timestamp"] = get_current_time()
+        data["values"][0]["Timestamp"] = get_current_time()
         data["values"][0]["IntegerProperty"] = int(100*random.random())
 
     elif data["containerid"] == "Container3":
         boolean_value_2 = (boolean_value_2 + 1) % 2
-        data["values"][0]["timestamp"] = get_current_time()
+        data["values"][0]["Timestamp"] = get_current_time()
         data["values"][0]["NumberProperty1"] = 100*random.random()
         data["values"][0]["NumberProperty2"] = 100*random.random()
         data["values"][0]["StringEnum"] = str(bool(boolean_value_2))
 
     elif data["containerid"] == "Container4":
         boolean_value_1 = (boolean_value_1 + 1) % 2
-        data["values"][0]["timestamp"] = get_current_time()
+        data["values"][0]["Timestamp"] = get_current_time()
         data["values"][0]["IntegerEnum"] = boolean_value_1
 
     else:
