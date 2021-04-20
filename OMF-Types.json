@@ -46,7 +46,7 @@
       },
       "StringEnum": {
         "type": "string",
-        "enum": ["False", "True"],
+        "enum": [ "False", "True" ],
         "description": "String enumeration to replace boolean type"
       }
     }
@@ -67,7 +67,7 @@
       "IntegerEnum": {
         "type": "integer",
         "format": "int16",
-        "enum": [0, 1],
+        "enum": [ 0, 1 ],
         "description": "Integer enumeration to replace boolean type"
       }
     }
