@@ -209,18 +209,18 @@ def get_data(data):
     ''' Get data to be sent to EDS'''
     global boolean_value_1, boolean_value_2
 
-    if data["containerid"] == 'Container1' or data["containerid"] == 'Container2':
+    if data["containerid"] == 'FirstContainer' or data["containerid"] == 'SecondContainer':
         data["values"][0]["Timestamp"] = get_current_time()
         data["values"][0]["IntegerProperty"] = int(100*random.random())
 
-    elif data["containerid"] == 'Container3':
+    elif data["containerid"] == 'ThirdContainer':
         boolean_value_2 = (boolean_value_2 + 1) % 2
         data["values"][0]["Timestamp"] = get_current_time()
         data["values"][0]["NumberProperty1"] = 100*random.random()
         data["values"][0]["NumberProperty2"] = 100*random.random()
         data["values"][0]["StringEnum"] = str(bool(boolean_value_2))
 
-    elif data["containerid"] == 'Container4':
+    elif data["containerid"] == 'FourthContainer':
         boolean_value_1 = (boolean_value_1 + 1) % 2
         data["values"][0]["Timestamp"] = get_current_time()
         data["values"][0]["IntegerEnum"] = boolean_value_1
