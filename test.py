@@ -3,8 +3,8 @@ import traceback
 import requests
 import json
 import os
-from program import main, get_headers, endpoint_types, \
-    endpoints, get_json_file, send_message_to_omf_endpoint, get_config
+from program import main, get_headers, endpoints, EndpointTypes,\
+    get_json_file, send_message_to_omf_endpoint, get_config
 
 
 class ProgramTestCase(unittest.TestCase):
@@ -33,23 +33,23 @@ def check_creations(self, sent_data):
         try:
             endpoint_type = endpoint["endpoint-type"]
 
-            if endpoint_type == endpoint_types[2]:
+            if endpoint_type == EndpointTypes.PI.value:
                 # get point URLs
                 response = send_get_request_to_endpoint(
                     endpoint, path=f"/dataservers?name={endpoint['data-server-name']}")
-                points_URL = json.loads(response.text)['Links']['Points']
+                points_URL = response.json()['Links']['Points']
 
                 # get point data and check response
                 for omf_container in omf_containers:
                     response = send_get_request_to_endpoint(
                         endpoint, base=points_URL, path=f"?nameFilter={omf_container['id']}*")
                     # get end value URLs
-                    for item in json.loads(response.text)['Items']:
+                    for item in response.json()['Items']:
                         end_value_URL = item['Links']['Value']
                         # retrieve data
                         response = send_get_request_to_endpoint(
                             endpoint, base=end_value_URL)
-                        end_value = json.loads(response.text)["Value"]
+                        end_value = response.json()["Value"]
                         # check that the response was good and that data was written to the point
                         if response.status_code < 200 or response.status_code >= 300:
                             print(f"Unable to find item {item}")
@@ -86,13 +86,13 @@ def check_creations(self, sent_data):
                     if response.text == "" or (response.status_code < 200 or response.status_code >= 300):
                         print(f"Unable to find data {omf_datum}")
                         success = False
-                    elif not compare_data("SDS", json.loads(response.text), sent_data[omf_datum["containerid"]]):
+                    elif not compare_data("SDS", response.json(), sent_data[omf_datum["containerid"]]):
                         print(f"Data in {omf_datum} does not match what was sent")
                         success = False
 
 
         except Exception as ex:
-            print(("Encountered Error: {error}".format(error=ex)))
+            print(f"Encountered Error: {ex}")
             print
             traceback.print_exc()
             print
@@ -125,7 +125,7 @@ def cleanup(self):
                     endpoint, "type", [omf_type], action='delete')
 
         except Exception as ex:
-            print(("Encountered Error: {error}".format(error=ex)))
+            print(f"Encountered Error: {ex}")
             print
             traceback.print_exc()
             print
@@ -137,7 +137,6 @@ def cleanup(self):
 
 def send_get_request_to_endpoint(endpoint, path="", base=""):
     '''Sends the get request to the path relative to the base base and returns the response'''
-    global endpoint_types
 
     if base == "":
         base = endpoint["base-endpoint"]
@@ -151,7 +150,7 @@ def send_get_request_to_endpoint(endpoint, path="", base=""):
     endpoints_type = endpoint["endpoint-type"]
     response = {}
     # If the endpoint is OCS
-    if endpoints_type == endpoint_types[0]:
+    if endpoints_type == EndpointTypes.OCS.value:
         response = requests.get(
             base+path,
             headers=msg_headers,
@@ -159,14 +158,14 @@ def send_get_request_to_endpoint(endpoint, path="", base=""):
             timeout=endpoint["web-request-timeout-seconds"]
         )
     # If the endpoint is EDS
-    elif endpoints_type == endpoint_types[1]:
+    elif endpoints_type == EndpointTypes.EDS.value:
         response = requests.get(
             base+path,
             headers=msg_headers,
             timeout=endpoint["web-request-timeout-seconds"]
         )
     # If the endpoint is PI
-    elif endpoints_type == endpoint_types[2]:
+    elif endpoints_type == EndpointTypes.PI.value:
         response = requests.get(
             base+path,
             headers=msg_headers,

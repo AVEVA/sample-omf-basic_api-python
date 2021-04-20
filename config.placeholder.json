@@ -23,7 +23,7 @@
       "data-server-name": "REPLACE_WITH_DATA_ARCHIVE_NAME",
       "username": "REPLACE_WITH_USERNAME",
       "password": "REPLACE_WITH_PASSWORD",
-      "verify-ssl": "REPLACE"
+      "verify-ssl": true
     }
   ]
 }

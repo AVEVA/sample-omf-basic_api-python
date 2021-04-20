@@ -16,13 +16,14 @@ The samples were built and tested against Python 3. If you are using a different
 1. Clone the GitHub repository
 1. Install required modules: `pip install -r requirements.txt`
 1. Open the folder with your favorite IDE
-1. Rename the placeholder config file [config-placeholder.json](config-placeholder.json) to config.json
+1. Rename the placeholder config file [config.placeholder.json](config.placeholder.json) to config.json
 1. Update config.json with the credentials for the enpoint(s) you want to send to. See [Configure endpoints and authentication](#configure-endpoints-and-authentication) below for additional details
 1. Run program.py
 
 ## To Test this Sample:
 
 ### Option 1
+
 1. Run test.py
 
 ### Option 2
@@ -31,9 +32,10 @@ The samples were built and tested against Python 3. If you are using a different
 1. Run `pytest program.py`
 
 ## Customizing the Application
-This application can be customized to send your own custom types, containers, and data by modifying the [OMF-Types.json](OMF-Types.json), 
+
+This application can be customized to send your own custom types, containers, and data by modifying the [OMF-Types.json](OMF-Types.json)
 [OMF-Containers.json](OMF-Containers.json), and [OMF-Data.json](OMF-Data.json) files respectively. Each one of these files contains an array of OMF json objects, which are
-created in the endpoints specified in [config.json](config-placeholder.json) when the application is run. For more information on forming OMF messages, please refer to our 
+created in the endpoints specified in [config.json](config.placeholder.json) when the application is run. For more information on forming OMF messages, please refer to our 
 [OMF version 1.1 documentation](https://omf-docs.osisoft.com/documentation_v11/Whats_New.html).  
   
 In addition to modifying the json files mentioned above, the get_data function in [program.py](program.py) should be updated to populate the OMF data messages specified in 
@@ -44,11 +46,12 @@ Finally, if there are any other activities that you would like to be running con
 
 ## Configure Endpoints and Authentication
 
-The sample is configured using the file [config-placeholder.json](config-placeholder.json). Before editing, rename this file to `config.json`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
+The sample is configured using the file [config.placeholder.json](config.placeholder.json). Before editing, rename this file to `config.json`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
 
 The application can be configured to send to any number of endpoints specified in the endpoints array within config.json. In addition, there are three types of endpoints: [OCS](#ocs-endpoint-configuration), [EDS](#eds-endpoint-configuration), and [PI](#pi-endpoint-configuration). Each of the 3 types of enpoints are configured differently and their configurations are explained in the sections below.
 
 ### OCS Endpoint Configuration
+
 The format of the configuration for an OCS endpoint is shown below along with descriptions of each parameter. Replace all parameters with appropriate values.
 
 ```json
@@ -61,7 +64,7 @@ The format of the configuration for an OCS endpoint is shown below along with de
   "client-secret": "REPLACE_WITH_APPLICATION_SECRET",
   "api-version": "v1",
   "verify-ssl": true,
-  "use-compression": false,
+  "use-compression": true,
   "web-request-timeout-seconds": 30
 }
 ```
@@ -81,6 +84,7 @@ The format of the configuration for an OCS endpoint is shown below along with de
 
 
 ### EDS Endpoint Configurations
+
 The format of the configuration for an EDS endpoint is shown below along with descriptions of each parameter. Replace all parameters with appropriate values.
 
 ```json
@@ -88,7 +92,7 @@ The format of the configuration for an EDS endpoint is shown below along with de
   "endpoint-type": "EDS",
   "resource": "http://localhost:5590",
   "api-version": "v1",
-  "use-compression": false,
+  "use-compression": true,
   "web-request-timeout-seconds": 30
 }
 ```
@@ -103,6 +107,7 @@ The format of the configuration for an EDS endpoint is shown below along with de
 
 
 ### PI Endpoint Configuration
+
 The format of the configuration for a PI endpoint is shown below along with descriptions of each parameter. Replace all parameters with appropriate values.
 
 ```json
@@ -113,7 +118,7 @@ The format of the configuration for a PI endpoint is shown below along with desc
   "username": "REPLACE_WITH_USERNAME",
   "password": "REPLACE_WITH_PASSWORD",
   "verify-ssl": "REPLACE",
-  "use-compression": false,
+  "use-compression": true,
   "web-request-timeout-seconds": 30
 }
 ```
@@ -125,8 +130,8 @@ The format of the configuration for a PI endpoint is shown below along with desc
 | data-server-name            | required | string         | The name of the PI Data Archive that is being sent to                                                                                                           |
 | username                    | required | string         | The username that is being used for authenticating to the PI Web API                                                                                                       |
 | password                    | required | string         | The password that is being used for authenticating to the PI Web API                                                                                                                                                                                                                    |
-| verify-ssl                  | optional | boolean        | A feature flag for verifying SSL when connecting to the PI Web API. Alternatively, this can specify the path to a .pem certificate file if a self-signed certificate is being used by the PI Web API. By defualt this is set to true as it is strongly recommended that SSL be checked. |
-| use-compression             | optional | boolean/string | A feature flag for enabling compression on messages sent to the OCS endpoint                                                                                                               |
+| verify-ssl                  | optional | boolean/string | A feature flag for verifying SSL when connecting to the PI Web API. Alternatively, this can specify the path to a .pem certificate file if a self-signed certificate is being used by the PI Web API. By defualt this is set to true as it is strongly recommended that SSL be checked. |
+| use-compression             | optional | boolean        | A feature flag for enabling compression on messages sent to the OCS endpoint                                                                                                               |
 | web-request-timeout-seconds | optional | integer        | An optional timeout setting for web requests                                                                                                                     |
 
 ---
