@@ -27,7 +27,7 @@ def check_creations(self, sent_data):
     omf_data = get_json_file("OMF-Data.json")
 
     # Step 8 - Check Creations
-    print('Check')
+    print("Check")
     success = True
     for endpoint in endpoints:
         try:
@@ -37,15 +37,15 @@ def check_creations(self, sent_data):
                 # get point URLs
                 response = send_get_request_to_endpoint(
                     endpoint, path=f"/dataservers?name={endpoint['data-server-name']}")
-                points_URL = response.json()['Links']['Points']
+                points_URL = response.json()["Links"]["Points"]
 
                 # get point data and check response
                 for omf_container in omf_containers:
                     response = send_get_request_to_endpoint(
                         endpoint, base=points_URL, path=f"?nameFilter={omf_container['id']}*")
                     # get end value URLs
-                    for item in response.json()['Items']:
-                        end_value_URL = item['Links']['Value']
+                    for item in response.json()["Items"]:
+                        end_value_URL = item["Links"]["Value"]
                         # retrieve data
                         response = send_get_request_to_endpoint(
                             endpoint, base=end_value_URL)
@@ -110,19 +110,19 @@ def cleanup(self):
     omf_containers = get_json_file("OMF-Containers.json")
 
     # Step 9 - Cleanup
-    print('Deletes')
+    print("Deletes")
     success = True
     for endpoint in endpoints:
         try:
             # delete containers
             for omf_container in omf_containers:
                 send_message_to_omf_endpoint(
-                    endpoint, "container", [omf_container], action='delete')
+                    endpoint, "container", [omf_container], action="delete")
 
             # delete types
             for omf_type in omf_types:
                 send_message_to_omf_endpoint(
-                    endpoint, "type", [omf_type], action='delete')
+                    endpoint, "type", [omf_type], action="delete")
 
         except Exception as ex:
             print(f"Encountered Error: {ex}")

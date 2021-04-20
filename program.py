@@ -73,7 +73,7 @@ def get_token(endpoint):
     tokenEndpoint = json.loads(discoveryUrl.content)["token_endpoint"]
     tokenUrl = urlparse(tokenEndpoint)
     # Validate URL
-    assert tokenUrl.scheme == 'https'
+    assert tokenUrl.scheme == "https"
     assert tokenUrl.geturl().startswith(endpoint["resource"])
 
     tokenInformation = requests.post(
@@ -88,8 +88,8 @@ def get_token(endpoint):
     if token is None:
         raise Exception("Failed to retrieve Token")
 
-    __expiration = float(token['expires_in']) + time.time()
-    __token = token['access_token']
+    __expiration = float(token["expires_in"]) + time.time()
+    __token = token["access_token"]
 
     # cache the results
     endpoint["expiration"] = __expiration
@@ -103,14 +103,14 @@ def get_token(endpoint):
 # ************************************************************************
 
 
-def send_message_to_omf_endpoint(endpoint, message_type, message_omf_json, action='create'):
+def send_message_to_omf_endpoint(endpoint, message_type, message_omf_json, action="create"):
     '''Sends the request out to the preconfigured endpoint'''
 
     # Compress json omf payload, if specified
-    compression = 'none'
+    compression = "none"
     if endpoint["use-compression"]:
-        msg_body = gzip.compress(bytes(json.dumps(message_omf_json), 'utf-8'))
-        compression = 'gzip'
+        msg_body = gzip.compress(bytes(json.dumps(message_omf_json), "utf-8"))
+        compression = "gzip"
     else:
         msg_body = json.dumps(message_omf_json)
 
@@ -233,7 +233,7 @@ def get_data(data):
 
 def get_current_time():
     ''' Returns the current time'''
-    return datetime.datetime.utcnow().isoformat() + 'Z'
+    return datetime.datetime.utcnow().isoformat() + "Z"
 
 
 def get_json_file(filename):
@@ -371,5 +371,5 @@ def main(test=False, last_sent_values={}):
     return success
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
