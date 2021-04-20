@@ -23,7 +23,7 @@ from urllib.parse import urlparse
 # ************************************************************************
 
 # The version of the OMFmessages
-omfVersion = "1.1"
+omfVersion = '1.1'
 
 # The number of seconds to sleep before sending another round of messages
 sleep_time = 1
@@ -39,9 +39,9 @@ boolean_value_2 = 1
 
 
 class EndpointTypes(enum.Enum):
-    OCS = "OCS"
-    EDS = "EDS"
-    PI = "PI"
+    OCS = 'OCS'
+    EDS = 'EDS'
+    PI = 'PI'
 
 # ************************************************************************
 # REQUIRED: generates a bearer token for authentication
@@ -54,39 +54,39 @@ def get_token(endpoint):
     endpoint_type = endpoint["endpoint-type"]
     # return an empty string if the endpoint is not an OCS type
     if endpoint_type != EndpointTypes.OCS.value:
-        return ""
+        return ''
 
-    if (("expiration" in endpoint) and (endpoint["expiration"] - time.time()) > 5 * 60):
+    if (('expiration' in endpoint) and (endpoint["expiration"] - time.time()) > 5 * 60):
         return endpoint["token"]
 
     # we can't short circuit it, so we must go retreive it.
 
     discoveryUrl = requests.get(
-        endpoint["resource"] + "/identity/.well-known/openid-configuration",
-        headers={"Accept": "application/json"},
+        endpoint["resource"] + '/identity/.well-known/openid-configuration',
+        headers={'Accept': 'application/json'},
         verify=endpoint["verify-ssl"])
 
     if discoveryUrl.status_code < 200 or discoveryUrl.status_code >= 300:
         discoveryUrl.close()
-        raise Exception(f"Failed to get access token endpoint from discovery URL: {discoveryUrl.status_code}:{discoveryUrl.text}")
+        raise Exception(f'Failed to get access token endpoint from discovery URL: {discoveryUrl.status_code}:{discoveryUrl.text}')
 
     tokenEndpoint = json.loads(discoveryUrl.content)["token_endpoint"]
     tokenUrl = urlparse(tokenEndpoint)
     # Validate URL
-    assert tokenUrl.scheme == "https"
+    assert tokenUrl.scheme == 'https'
     assert tokenUrl.geturl().startswith(endpoint["resource"])
 
     tokenInformation = requests.post(
         tokenUrl.geturl(),
-        data={"client_id": endpoint["client-id"],
-              "client_secret": endpoint["client-secret"],
-              "grant_type": "client_credentials"},
+        data={'client_id': endpoint["client-id"],
+              'client_secret': endpoint["client-secret"],
+              'grant_type': 'client_credentials'},
         verify=endpoint["verify-ssl"])
 
     token = json.loads(tokenInformation.content)
 
     if token is None:
-        raise Exception("Failed to retrieve Token")
+        raise Exception('Failed to retrieve Token')
 
     __expiration = float(token["expires_in"]) + time.time()
     __token = token["access_token"]
@@ -103,14 +103,14 @@ def get_token(endpoint):
 # ************************************************************************
 
 
-def send_message_to_omf_endpoint(endpoint, message_type, message_omf_json, action="create"):
+def send_message_to_omf_endpoint(endpoint, message_type, message_omf_json, action='create'):
     '''Sends the request out to the preconfigured endpoint'''
 
     # Compress json omf payload, if specified
-    compression = "none"
+    compression = 'none'
     if endpoint["use-compression"]:
-        msg_body = gzip.compress(bytes(json.dumps(message_omf_json), "utf-8"))
-        compression = "gzip"
+        msg_body = gzip.compress(bytes(json.dumps(message_omf_json), 'utf-8'))
+        compression = 'gzip'
     else:
         msg_body = json.dumps(message_omf_json)
 
@@ -157,9 +157,9 @@ def send_message_to_omf_endpoint(endpoint, message_type, message_omf_json, actio
         print(msg_headers)
         response.close()
         print(
-            f"Response from relay was bad. {message_type} message: {response.status_code} {response.text}.  Message holdings: {message_omf_json}")
+            f'Response from relay was bad. {message_type} message: {response.status_code} {response.text}.  Message holdings: {message_omf_json}')
         print()
-        raise Exception(f"OMF message was unsuccessful, {message_type}. {response.status_code}:{response.text}")
+        raise Exception(f'OMF message was unsuccessful, {message_type}. {response.status_code}:{response.text}')
 
 
 # ************************************************************************
@@ -167,33 +167,33 @@ def send_message_to_omf_endpoint(endpoint, message_type, message_omf_json, actio
 # ************************************************************************
 
 
-def get_headers(endpoint, compression="", message_type="", action=""):
+def get_headers(endpoint, compression='', message_type='', action=''):
     '''Assemble headers for sending to the endpoint's OMF endpoint'''
 
     endpoint_type = endpoint["endpoint-type"]
 
     msg_headers = {
-        "messagetype": message_type,
-        "action": action,
-        "messageformat": "JSON",
-        "omfversion": omfVersion
+        'messagetype': message_type,
+        'action': action,
+        'messageformat': 'JSON',
+        'omfversion': omfVersion
     }
 
-    if(compression == "gzip"):
-        msg_headers["compression"] = "gzip"
+    if(compression == 'gzip'):
+        msg_headers["compression"] = 'gzip'
 
     # If the endpoint is OCS
     if endpoint_type == EndpointTypes.OCS.value:
-        msg_headers["Authorization"] = f"Bearer {get_token(endpoint)}"
+        msg_headers["Authorization"] = f'Bearer {get_token(endpoint)}'
     # If the endpoint is PI
     elif endpoint_type == EndpointTypes.PI.value:
-        msg_headers["x-requested-with"] = "xmlhttprequest"
+        msg_headers["x-requested-with"] = 'xmlhttprequest'
 
     # validate headers to prevent injection attacks
     validated_headers = {}
 
     for key in msg_headers:
-        if key in {"Authorization", "messagetype", "action", "messageformat", "omfversion", "x-requested-with", "compression"}:
+        if key in {'Authorization', 'messagetype', 'action', 'messageformat', 'omfversion', 'x-requested-with', 'compression'}:
             validated_headers[key] = msg_headers[key]
 
     return validated_headers
@@ -209,31 +209,31 @@ def get_data(data):
     ''' Get data to be sent to EDS'''
     global boolean_value_1, boolean_value_2
 
-    if data["containerid"] == "Container1" or data["containerid"] == "Container2":
+    if data["containerid"] == 'Container1' or data["containerid"] == 'Container2':
         data["values"][0]["Timestamp"] = get_current_time()
         data["values"][0]["IntegerProperty"] = int(100*random.random())
 
-    elif data["containerid"] == "Container3":
+    elif data["containerid"] == 'Container3':
         boolean_value_2 = (boolean_value_2 + 1) % 2
         data["values"][0]["Timestamp"] = get_current_time()
         data["values"][0]["NumberProperty1"] = 100*random.random()
         data["values"][0]["NumberProperty2"] = 100*random.random()
         data["values"][0]["StringEnum"] = str(bool(boolean_value_2))
 
-    elif data["containerid"] == "Container4":
+    elif data["containerid"] == 'Container4':
         boolean_value_1 = (boolean_value_1 + 1) % 2
         data["values"][0]["Timestamp"] = get_current_time()
         data["values"][0]["IntegerEnum"] = boolean_value_1
 
     else:
-        print(f"Container {data['containerid']} not recognized")
+        print(f'Container {data["containerid"]} not recognized')
 
     return data
 
 
 def get_current_time():
     ''' Returns the current time'''
-    return datetime.datetime.utcnow().isoformat() + "Z"
+    return datetime.datetime.utcnow().isoformat() + 'Z'
 
 
 def get_json_file(filename):
@@ -243,12 +243,12 @@ def get_json_file(filename):
     try:
         with open(
             filename,
-            "r",
+            'r',
         ) as f:
             loaded_json = json.load(f)
     except Exception as error:
-        print(f"Error: {str(error)}")
-        print(f"Could not open/read file: {filename}")
+        print(f'Error: {str(error)}')
+        print(f'Could not open/read file: {filename}')
         exit()
 
     return loaded_json
@@ -258,7 +258,7 @@ def get_config():
     ''' Return the config.json as a config file, while also populating base_endpoint, omf_endpoint, and default values'''
 
     # Try to open the configuration file
-    endpoints = get_json_file("config.json")["endpoints"]
+    endpoints = get_json_file('config.json')["endpoints"]
 
     # for each endpoint construct the check base and OMF endpoint and populate default values
     for endpoint in endpoints:
@@ -266,35 +266,35 @@ def get_config():
 
         # If the endpoint is OCS
         if endpoint_type == EndpointTypes.OCS.value:
-            base_endpoint = f"{endpoint['resource']}/api/{endpoint['api-version']}" + \
-                f"/tenants/{endpoint['tenant']}/namespaces/{endpoint['namespace']}"
+            base_endpoint = f'{endpoint["resource"]}/api/{endpoint["api-version"]}' + \
+                f'/tenants/{endpoint["tenant"]}/namespaces/{endpoint["namespace"]}'
 
         # If the endpoint is EDS
         elif endpoint_type == EndpointTypes.EDS.value:
-            base_endpoint = f"{endpoint['resource']}/api/{endpoint['api-version']}" + \
-                f"/tenants/default/namespaces/default"
+            base_endpoint = f'{endpoint["resource"]}/api/{endpoint["api-version"]}' + \
+                f'/tenants/default/namespaces/default'
 
         # If the endpoint is PI
         elif endpoint_type == EndpointTypes.PI.value:
             base_endpoint = endpoint["resource"]
 
         else:
-            raise ValueError("Invalid endpoint type")
+            raise ValueError('Invalid endpoint type')
 
-        omf_endpoint = f"{base_endpoint}/omf"
+        omf_endpoint = f'{base_endpoint}/omf'
 
         # add the base_endpoint and omf_endpoint to the endpoint configuration
         endpoint["base-endpoint"] = base_endpoint
         endpoint["omf-endpoint"] = omf_endpoint
 
         # check for optional/nullable parameters
-        if "verify-ssl" not in endpoint or endpoint["verify-ssl"] == None:
+        if 'verify-ssl' not in endpoint or endpoint["verify-ssl"] == None:
             endpoint["verify-ssl"] = True
 
-        if "use-compression" not in endpoint or endpoint["use-compression"] == None:
+        if 'use-compression' not in endpoint or endpoint["use-compression"] == None:
             endpoint["use-compression"] = True
 
-        if "web-request-timeout-seconds" not in endpoint or endpoint["web-request-timeout-seconds"] == None:
+        if 'web-request-timeout-seconds' not in endpoint or endpoint["web-request-timeout-seconds"] == None:
             endpoint["web-request-timeout-seconds"] = 30
 
     return endpoints
@@ -310,13 +310,13 @@ def main(test=False, last_sent_values={}):
     endpoints = get_config()
 
     # Step 2 - Get OMF Types
-    omf_types = get_json_file("OMF-Types.json")
+    omf_types = get_json_file('OMF-Types.json')
 
     # Step 3 - Get OMF Containers
-    omf_containers = get_json_file("OMF-Containers.json")
+    omf_containers = get_json_file('OMF-Containers.json')
 
     # Step 4 - Get OMF Data
-    omf_data = get_json_file("OMF-Data.json")
+    omf_data = get_json_file('OMF-Data.json')
 
     # Send messages and check for each endpoint in config.json
 
@@ -324,16 +324,16 @@ def main(test=False, last_sent_values={}):
         # Send out the messages that only need to be sent once
         for endpoint in endpoints:
             if not endpoint["verify-ssl"]:
-                print("You are not verifying the certificate of the end point.  This is not advised for any system as there are security issues with doing this.")
+                print('You are not verifying the certificate of the end point.  This is not advised for any system as there are security issues with doing this.')
 
             # Step 5 - Send OMF Types
             for omf_type in omf_types:
-                send_message_to_omf_endpoint(endpoint, "type", [omf_type])
+                send_message_to_omf_endpoint(endpoint, 'type', [omf_type])
 
             # Step 6 - Send OMF Containers
             for omf_container in omf_containers:
                 send_message_to_omf_endpoint(
-                    endpoint, "container", [omf_container])
+                    endpoint, 'container', [omf_container])
 
         # Step 7 - Send OMF Data
         count = 0
@@ -348,7 +348,7 @@ def main(test=False, last_sent_values={}):
                 for endpoint in endpoints:
                     # send the data
                     send_message_to_omf_endpoint(
-                        endpoint, "data", [data_to_send])
+                        endpoint, 'data', [data_to_send])
 
                 # record the values sent if this is a test
                 if test and count == 1:
@@ -359,7 +359,7 @@ def main(test=False, last_sent_values={}):
             count = count + 1
 
     except Exception as ex:
-        print(f"Encountered Error: {ex}")
+        print(f'Encountered Error: {ex}')
         print
         traceback.print_exc()
         print
@@ -367,9 +367,9 @@ def main(test=False, last_sent_values={}):
         if test:
             raise ex
 
-    print("Done")
+    print('Done')
     return success
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
