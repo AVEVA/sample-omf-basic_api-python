@@ -188,11 +188,11 @@ def compare_data(data_format, response, sent_data):
         if len(split) == 2:
             prop = split[1]
             for key in sent_data["values"][0]:
-                if key == prop and sent_data["values"][0][key] == sent_data:
+                if key == prop and sent_data["values"][0][key] != response:
                     success = False
         else:
             for key in sent_data["values"][0]:
-                if key != "Timestamp" and sent_data["values"][0][key] == sent_data:
+                if key != "Timestamp" and sent_data["values"][0][key] != response:
                     success = False
 
     return success
