@@ -33,16 +33,9 @@ The samples were built and tested against Python 3. If you are using a different
 
 ## Customizing the Application
 
-This application can be customized to send your own custom types, containers, and data by modifying the [OMF-Types.json](OMF-Types.json)
-[OMF-Containers.json](OMF-Containers.json), and [OMF-Data.json](OMF-Data.json) files respectively. Each one of these files contains an array of OMF json objects, which are
-created in the endpoints specified in [config.json](config.placeholder.json) when the application is run. For more information on forming OMF messages, please refer to our 
-[OMF version 1.1 documentation](https://omf-docs.osisoft.com/documentation_v11/Whats_New.html).  
+This application can be customized to send your own custom types, containers, and data by modifying the [OMF-Types.json](OMF-Types.json) [OMF-Containers.json](OMF-Containers.json), and [OMF-Data.json](OMF-Data.json) files respectively. Each one of these files contains an array of OMF json objects, which are created in the endpoints specified in [config.json](config.placeholder.json) when the application is run. For more information on forming OMF messages, please refer to our [OMF version 1.1 documentation](https://omf-docs.osisoft.com/documentation_v11/Whats_New.html).  
   
-In addition to modifying the json files mentioned above, the get_data function in [program.py](program.py) should be updated to populate the OMF data messages specified in 
-[OMF-Data.json](OMF-Data.json) with data from your data source.  
-  
-Finally, if there are any other activities that you would like to be running continuously, this logic can be added under the while loop in the main() function of 
-[program.py](program.py).
+In addition to modifying the json files mentioned above, the get_data function in [program.py](program.py) should be updated to populate the OMF data messages specified in [OMF-Data.json](OMF-Data.json) with data from your data source. Finally, if there are any other activities that you would like to be running continuously, this logic can be added under the while loop in the main() function of [program.py](program.py).
 
 ## Configure Endpoints and Authentication
 
@@ -117,7 +110,7 @@ The format of the configuration for a PI endpoint is shown below along with desc
   "data-server-name": "REPLACE_WITH_DATA_ARCHIVE_NAME",
   "username": "REPLACE_WITH_USERNAME",
   "password": "REPLACE_WITH_PASSWORD",
-  "verify-ssl": "REPLACE",
+  "verify-ssl": true,
   "use-compression": true,
   "web-request-timeout-seconds": 30
 }
