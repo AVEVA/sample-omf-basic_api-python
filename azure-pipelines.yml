@@ -70,7 +70,6 @@ jobs:
         displayName: 'Publish test results'
         
   - job: Tests_OnPrem
-    dependsOn: Tests_OCS
     pool:
       name: 00-OSIManaged-Test
       demands: COMPUTERNAME -equals $(buildAgent)
@@ -95,7 +94,6 @@ jobs:
         displayName: 'Publish test results'
         
   - job: Tests_EDS
-    dependsOn: Tests_OnPrem
     pool:
       name: 00-OSIManaged-Test
       demands: COMPUTERNAME -equals $(buildAgent)
