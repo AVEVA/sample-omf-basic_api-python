@@ -1,0 +1,29 @@
+{
+  "endpoints": [
+    {
+      "endpoint-type": "OCS",
+      "resource": "https://dat-b.osisoft.com",
+      "namespace": "REPLACE_WITH_NAMESPACE_NAME",
+      "tenant": "RPLACE_WITH_TENANT_ID",
+      "client-id": "REPLACE_WITH_APPLICATION_IDENTIFIER",
+      "client-secret": "REPLACE_WITH_APPLICATION_SECRET",
+      "api-version": "v1",
+      "verify-ssl": true,
+      "use-compression": false,
+      "web-request-timeout-seconds": 30
+    },
+    {
+      "endpoint-type": "EDS",
+      "resource": "http://localhost:5590",
+      "api-version": "v1"
+    },
+    {
+      "endpoint-type": "PI",
+      "resource": "REPLACE_WITH_PI_WEB_API_URL",
+      "data-server-name": "REPLACE_WITH_DATA_ARCHIVE_NAME",
+      "username": "REPLACE_WITH_USERNAME",
+      "password": "REPLACE_WITH_PASSWORD",
+      "verify-ssl": true
+    }
+  ]
+}

@@ -27,11 +27,13 @@ resources:
 variables:
   - template: '/miscellaneous/build_templates/variables.yml@templates'
   - name: CredFile
-    value: config.ini
+    value: config.json
   - name: CredFileLibrary
-    value: product-readiness.omf_api_python.ocs.ini
+    value: product-readines.omf-basic_api-python.ocs.json
   - name: CredFileLibraryOP
-    value: product-readiness.omf_api_python.onprem.ini
+    value: product-readines.omf-basic_api-python.pi.json
+  - name: CredFileLibraryEDS
+    value: product-readines.omf-basic_api-python.eds.json
   - name: analysisProject
     value: OMF_API_Python
 
@@ -48,17 +50,25 @@ jobs:
 
       - script: |
           echo Install tools
-          call pip install setuptools wheel
-          call pip install unittest-xml-reporting    
-          call pip install pytest
-          call pip install pytest-cov
+          pip install setuptools wheel
+          pip install unittest-xml-reporting    
+          pip install pytest
+          pip install pytest-cov
           echo Install requirements
-          call pip install -r requirements.txt
+          pip install -r requirements.txt
           echo Run tests
-          call python -m pytest ./program.py
+          python -m pytest ./test.py --junitxml=junit/test-results.xml 
           echo Complete
         displayName: 'Run tests'
-
+        
+      - task: PublishTestResults@2
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFiles: '**/test-*.xml'
+          failTaskOnFailedTests: true
+          testRunTitle: '$(Agent.JobName) on $(Agent.OS)'
+        displayName: 'Publish test results'
+        
   - job: Tests_OnPrem
     pool:
       name: 00-OSIManaged-Test
@@ -68,6 +78,30 @@ jobs:
         parameters:
           fileOriginal: $(CredFile)
           fileLibrary: $(CredFileLibraryOP)
+
+      - script: pip install -r requirements.txt
+        displayName: 'Install requirements'
+
+      - script: python -m pytest --junitxml=junit/test-results.xml ./test.py
+        displayName: 'Run tests'
+
+      - task: PublishTestResults@2
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFiles: '**/test-*.xml'
+          failTaskOnFailedTests: true
+          testRunTitle: '$(Agent.JobName) on $(Agent.OS)'
+        displayName: 'Publish test results'
+        
+  - job: Tests_EDS
+    pool:
+      name: 00-OSIManaged-Test
+      demands: COMPUTERNAME -equals $(buildAgent)
+    steps:
+      - template: '/miscellaneous/build_templates/config.yml@templates'
+        parameters:
+          fileOriginal: $(CredFile)
+          fileLibrary: $(CredFileLibraryEDS)
 
       - script: pip install -r requirements.txt
         displayName: 'Install requirements'
