@@ -59,7 +59,8 @@ def check_creations(self, sent_data):
                             success = False
                         # compare the returned data to what was sent
                         if not compare_data(item["Name"], end_value, sent_data[omf_container["id"]]):
-                            print(f'Data in item {item} does match what was sent')
+                            print(
+                                f'Data in item {item} does match what was sent')
                             success = False
 
             else:
@@ -87,9 +88,9 @@ def check_creations(self, sent_data):
                         print(f'Unable to find data {omf_datum}')
                         success = False
                     elif not compare_data('SDS', response.json(), sent_data[omf_datum["containerid"]]):
-                        print(f'Data in {omf_datum} does not match what was sent')
+                        print(
+                            f'Data in {omf_datum} does not match what was sent')
                         success = False
-
 
         except Exception as ex:
             print(f'Encountered Error: {ex}')
@@ -176,12 +177,16 @@ def send_get_request_to_endpoint(endpoint, path='', base=''):
 
     return(response)
 
+
 def compare_data(data_format, response, sent_data):
     '''A helper function for comparing the data returned by either the PI Web API or the SDS'''
     success = True
     if data_format == 'SDS':
         for key in sent_data["values"][0]:
             if sent_data["values"][0][key] != response[key]:
+                print('Sent vs retrieved:')
+                print(sent_data["values"][0])
+                print(response)
                 success = False
     else:
         split = data_format.split('.')
@@ -196,6 +201,7 @@ def compare_data(data_format, response, sent_data):
                     success = False
 
     return success
+
 
 if __name__ == '__main__':
     unittest.main()
