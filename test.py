@@ -183,10 +183,7 @@ def compare_data(data_format, response, sent_data):
     success = True
     if data_format == 'SDS':
         for key in sent_data["values"][0]:
-            if sent_data["values"][0][key] != response[key]:
-                print('Sent vs retrieved:')
-                print(sent_data["values"][0])
-                print(response)
+            if key != "Timestamp" and sent_data["values"][0][key] != response[key]:
                 success = False
     else:
         split = data_format.split('.')
