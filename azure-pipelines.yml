@@ -60,7 +60,7 @@ jobs:
           python -m pytest ./test.py --junitxml=junit/test-results.xml 
           echo Complete
         displayName: 'Run tests'
-        
+
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:
@@ -68,7 +68,7 @@ jobs:
           failTaskOnFailedTests: true
           testRunTitle: '$(Agent.JobName) on $(Agent.OS)'
         displayName: 'Publish test results'
-        
+
   - job: Tests_OnPrem
     pool:
       name: 00-OSIManaged-Test
@@ -92,7 +92,7 @@ jobs:
           failTaskOnFailedTests: true
           testRunTitle: '$(Agent.JobName) on $(Agent.OS)'
         displayName: 'Publish test results'
-        
+
   - job: Tests_EDS
     pool:
       name: 00-OSIManaged-Test

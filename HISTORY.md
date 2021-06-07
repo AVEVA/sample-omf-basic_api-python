@@ -1,5 +1,10 @@
 # Version History
 
+## 2.0.1 / 2021-06-07
+
+- Updated README
+- Removed test timestamp value check
+
 ## 2.0.0 / 2021-04-14
 
 - Updated sample to make simpler and more readable
