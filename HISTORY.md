@@ -1,5 +1,9 @@
 # Version History
 
+## 2.0.2 / 2021-06-29
+
+- Resolved polaris URL manipulation issue
+
 ## 2.0.1 / 2021-06-07
 
 - Updated README
