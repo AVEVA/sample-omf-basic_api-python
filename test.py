@@ -43,7 +43,7 @@ def check_creations(self, sent_data):
 
                 # Validate URL
                 assert parsed_points_URL.scheme == 'https'
-                assert parsed_points_URL.geturl().startswith(endpoint["data-server-name"])
+                assert parsed_points_URL.geturl().startswith(endpoint["resource"])
 
                 # get point data and check response
                 for omf_container in omf_containers:
