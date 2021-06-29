@@ -48,7 +48,7 @@ def check_creations(self, sent_data):
                 # get point data and check response
                 for omf_container in omf_containers:
                     response = send_get_request_to_endpoint(
-                        endpoint, base=parsed_points_URL.geturl, path=f'?nameFilter={omf_container["id"]}*')
+                        endpoint, base=parsed_points_URL.geturl(), path=f'?nameFilter={omf_container["id"]}*')
                     # get end value URLs
                     for item in response.json()["Items"]:
                         end_value_URL = item["Links"]["Value"]
