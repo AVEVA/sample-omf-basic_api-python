@@ -3,6 +3,7 @@ import traceback
 import requests
 import json
 import os
+from urllib.parse import urlparse
 from program import main, get_headers, endpoints, EndpointTypes,\
     get_json_file, send_message_to_omf_endpoint, get_config
 
@@ -38,11 +39,16 @@ def check_creations(self, sent_data):
                 response = send_get_request_to_endpoint(
                     endpoint, path=f'/dataservers?name={endpoint["data-server-name"]}')
                 points_URL = response.json()["Links"]["Points"]
+                parsed_points_URL = urlparse(points_URL)
+
+                # Validate URL
+                assert parsed_points_URL.scheme == 'https'
+                assert parsed_points_URL.geturl().startswith(endpoint["data-server-name"])
 
                 # get point data and check response
                 for omf_container in omf_containers:
                     response = send_get_request_to_endpoint(
-                        endpoint, base=points_URL, path=f'?nameFilter={omf_container["id"]}*')
+                        endpoint, base=parsed_points_URL, path=f'?nameFilter={omf_container["id"]}*')
                     # get end value URLs
                     for item in response.json()["Items"]:
                         end_value_URL = item["Links"]["Value"]
