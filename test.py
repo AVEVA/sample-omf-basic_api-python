@@ -3,6 +3,7 @@ import traceback
 import requests
 import json
 import os
+from urllib.parse import urlparse
 from program import main, get_headers, endpoints, EndpointTypes,\
     get_json_file, send_message_to_omf_endpoint, get_config
 
@@ -37,18 +38,18 @@ def check_creations(self, sent_data):
                 # get point URLs
                 response = send_get_request_to_endpoint(
                     endpoint, path=f'/dataservers?name={endpoint["data-server-name"]}')
-                points_URL = response.json()["Links"]["Points"]
-
+                points_url = response.json()["Links"]["Points"]
+                
                 # get point data and check response
                 for omf_container in omf_containers:
                     response = send_get_request_to_endpoint(
-                        endpoint, base=points_URL, path=f'?nameFilter={omf_container["id"]}*')
+                        endpoint, base=points_url, path=f'?nameFilter={omf_container["id"]}*')
                     # get end value URLs
                     for item in response.json()["Items"]:
-                        end_value_URL = item["Links"]["Value"]
+                        end_value_url = item["Links"]["Value"]
                         # retrieve data
                         response = send_get_request_to_endpoint(
-                            endpoint, base=end_value_URL)
+                            endpoint, base=end_value_url)
                         end_value = response.json()["Value"]
                         # check that the response was good and that data was written to the point
                         if response.status_code < 200 or response.status_code >= 300:
@@ -147,13 +148,18 @@ def send_get_request_to_endpoint(endpoint, path='', base=''):
     msg_headers.pop('omfversion')
     msg_headers["Accept-Verbosity"] = 'verbose'
 
+    # construct and validate url
+    url = urlparse(base + path)
+    assert url.scheme == 'https' or url.scheme == 'http'
+    assert url.geturl().startswith(endpoint["resource"])
+
     # Send message to base base
     endpoints_type = endpoint["endpoint-type"]
     response = {}
     # If the endpoint is OCS
     if endpoints_type == EndpointTypes.OCS.value:
         response = requests.get(
-            base+path,
+            url.geturl(),
             headers=msg_headers,
             verify=endpoint["verify-ssl"],
             timeout=endpoint["web-request-timeout-seconds"]
@@ -161,14 +167,14 @@ def send_get_request_to_endpoint(endpoint, path='', base=''):
     # If the endpoint is EDS
     elif endpoints_type == EndpointTypes.EDS.value:
         response = requests.get(
-            base+path,
+            url.geturl(),
             headers=msg_headers,
             timeout=endpoint["web-request-timeout-seconds"]
         )
     # If the endpoint is PI
     elif endpoints_type == EndpointTypes.PI.value:
         response = requests.get(
-            base+path,
+            url.geturl(),
             headers=msg_headers,
             verify=endpoint["verify-ssl"],
             timeout=endpoint["web-request-timeout-seconds"],
