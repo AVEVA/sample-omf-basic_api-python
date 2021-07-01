@@ -61,23 +61,23 @@ def get_token(endpoint):
 
     # we can't short circuit it, so we must go retreive it.
 
-    discovery_URL = requests.get(
+    discovery_url = requests.get(
         endpoint["resource"] + '/identity/.well-known/openid-configuration',
         headers={'Accept': 'application/json'},
         verify=endpoint["verify-ssl"])
 
-    if discovery_URL.status_code < 200 or discovery_URL.status_code >= 300:
-        discovery_URL.close()
-        raise Exception(f'Failed to get access token endpoint from discovery URL: {discovery_URL.status_code}:{discovery_URL.text}')
+    if discovery_url.status_code < 200 or discovery_url.status_code >= 300:
+        discovery_urlL.close()
+        raise Exception(f'Failed to get access token endpoint from discovery URL: {discovery_url.status_code}:{discovery_url.text}')
 
-    token_endpoint = json.loads(discovery_URL.content)["token_endpoint"]
-    token_URL = urlparse(token_endpoint)
+    token_endpoint = json.loads(discovery_url.content)["token_endpoint"]
+    token_url = urlparse(token_endpoint)
     # Validate URL
-    assert token_URL.scheme == 'https'
-    assert token_URL.geturl().startswith(endpoint["resource"])
+    assert token_url.scheme == 'https'
+    assert token_url.geturl().startswith(endpoint["resource"])
 
     token_information = requests.post(
-        token_URL.geturl(),
+        token_url.geturl(),
         data={'client_id': endpoint["client-id"],
               'client_secret': endpoint["client-secret"],
               'grant_type': 'client_credentials'},
