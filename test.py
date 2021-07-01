@@ -37,18 +37,18 @@ def check_creations(self, sent_data):
                 # get point URLs
                 response = send_get_request_to_endpoint(
                     endpoint, path=f'/dataservers?name={endpoint["data-server-name"]}')
-                points_URL = response.json()["Links"]["Points"]
+                points_url = response.json()["Links"]["Points"]
 
                 # get point data and check response
                 for omf_container in omf_containers:
                     response = send_get_request_to_endpoint(
-                        endpoint, base=points_URL, path=f'?nameFilter={omf_container["id"]}*')
+                        endpoint, base=points_url, path=f'?nameFilter={omf_container["id"]}*')
                     # get end value URLs
                     for item in response.json()["Items"]:
-                        end_value_URL = item["Links"]["Value"]
+                        end_value_url = item["Links"]["Value"]
                         # retrieve data
                         response = send_get_request_to_endpoint(
-                            endpoint, base=end_value_URL)
+                            endpoint, base=end_value_url)
                         end_value = response.json()["Value"]
                         # check that the response was good and that data was written to the point
                         if response.status_code < 200 or response.status_code >= 300:
