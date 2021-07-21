@@ -1,6 +1,6 @@
 # Building a Python client to send OMF to PI or OCS
 
-**Version:** 2.0.2
+**Version:** 2.0.3
 
 | OCS Test Status                                                                                                                                                                                                                                                                                                                                                    | EDS Test Status                                                                                                                                                                                                                                                                                                                                                    | PI Test Status                                                                                                                                                                                                                                                                                                                                                        |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -9,7 +9,6 @@
 The sample code in this topic demonstrates how to send OMF messages using Python.
 
 The samples were built and tested against Python 3. If you are using a different version you might encounter errors or unexepected behavior.
-
 
 ## To Run this Sample:
 
@@ -33,8 +32,8 @@ The samples were built and tested against Python 3. If you are using a different
 
 ## Customizing the Application
 
-This application can be customized to send your own custom types, containers, and data by modifying the [OMF-Types.json](OMF-Types.json) [OMF-Containers.json](OMF-Containers.json), and [OMF-Data.json](OMF-Data.json) files respectively. Each one of these files contains an array of OMF json objects, which are created in the endpoints specified in [config.json](config.placeholder.json) when the application is run. For more information on forming OMF messages, please refer to our [OMF version 1.1 documentation](https://omf-docs.osisoft.com/documentation_v11/Whats_New.html).  
-  
+This application can be customized to send your own custom types, containers, and data by modifying the [OMF-Types.json](OMF-Types.json) [OMF-Containers.json](OMF-Containers.json), and [OMF-Data.json](OMF-Data.json) files respectively. Each one of these files contains an array of OMF json objects, which are created in the endpoints specified in [config.json](config.placeholder.json) when the application is run. For more information on forming OMF messages, please refer to our [OMF version 1.1 documentation](https://omf-docs.osisoft.com/documentation_v11/Whats_New.html).
+
 In addition to modifying the json files mentioned above, the get_data function in [program.py](program.py) should be updated to populate the OMF data messages specified in [OMF-Data.json](OMF-Data.json) with data from your data source. Finally, if there are any other activities that you would like to be running continuously, this logic can be added under the while loop in the main() function of [program.py](program.py).
 
 ## Configure Endpoints and Authentication
@@ -74,9 +73,8 @@ The format of the configuration for an OCS endpoint is shown below along with de
 | client-secret               | required | string  | The client secret that is being used for authenticating to OCS                                                                                                   |
 | api-version                 | required | string  | The API version of the OCS endpoint                                                                                                                              |
 | verify-ssl                  | optional | boolean | A feature flag for verifying SSL when connecting to the OCS endpoint. By defualt this is set to true as it is strongly recommended that SSL be checked           |
-| use-compression             | optional | boolean | A feature flag for enabling compression on messages sent to the OCS endpoint                                                                                      |
+| use-compression             | optional | boolean | A feature flag for enabling compression on messages sent to the OCS endpoint                                                                                     |
 | web-request-timeout-seconds | optional | integer | An optional timeout setting for web requests                                                                                                                     |
-
 
 ### EDS Endpoint Configurations
 
@@ -97,9 +95,8 @@ The format of the configuration for an EDS endpoint is shown below along with de
 | endpoint-type               | required | string  | The endpoint type. For EDS this will always be "EDS"                                                                                              |
 | resource                    | required | string  | The endpoint for EDS if the namespace. If EDS is being run on your local machine with the default configuration, it will be http://localhost:5590 |
 | api-version                 | required | string  | The API version of the EDS endpoint                                                                                                               |
-| use-compression             | optional | boolean | A feature flag for enabling compression on messages sent to the OCS endpoint                                                                       |
-| web-request-timeout-seconds | optional | integer | An optional timeout setting for web requests   
-
+| use-compression             | optional | boolean | A feature flag for enabling compression on messages sent to the OCS endpoint                                                                      |
+| web-request-timeout-seconds | optional | integer | An optional timeout setting for web requests                                                                                                      |
 
 ### PI Endpoint Configuration
 
@@ -118,18 +115,19 @@ The format of the configuration for a PI endpoint is shown below along with desc
 }
 ```
 
-| Parameters                  | Required | Type           | Description                                                                                                                                                      |
-| --------------------------- | -------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| endpoint-type               | required | string         | The endpoint type. For PI this will always be "PI"                                                                                                             |
-| resource                    | required | string         | The URL of the PI Web API                                                                                                                                        |
-| data-server-name            | required | string         | The name of the PI Data Archive that is being sent to                                                                                                           |
-| username                    | required | string         | The username that is being used for authenticating to the PI Web API                                                                                                       |
+| Parameters                  | Required | Type           | Description                                                                                                                                                                                                                                                                             |
+| --------------------------- | -------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| endpoint-type               | required | string         | The endpoint type. For PI this will always be "PI"                                                                                                                                                                                                                                      |
+| resource                    | required | string         | The URL of the PI Web API                                                                                                                                                                                                                                                               |
+| data-server-name            | required | string         | The name of the PI Data Archive that is being sent to                                                                                                                                                                                                                                   |
+| username                    | required | string         | The username that is being used for authenticating to the PI Web API                                                                                                                                                                                                                    |
 | password                    | required | string         | The password that is being used for authenticating to the PI Web API                                                                                                                                                                                                                    |
 | verify-ssl                  | optional | boolean/string | A feature flag for verifying SSL when connecting to the PI Web API. Alternatively, this can specify the path to a .pem certificate file if a self-signed certificate is being used by the PI Web API. By defualt this is set to true as it is strongly recommended that SSL be checked. |
-| use-compression             | optional | boolean        | A feature flag for enabling compression on messages sent to the OCS endpoint                                                                                                               |
-| web-request-timeout-seconds | optional | integer        | An optional timeout setting for web requests                                                                                                                     |
+| use-compression             | optional | boolean        | A feature flag for enabling compression on messages sent to the OCS endpoint                                                                                                                                                                                                            |
+| web-request-timeout-seconds | optional | integer        | An optional timeout setting for web requests                                                                                                                                                                                                                                            |
 
 ---
+
 For the main OMF basic samples page [ReadMe](https://github.com/osisoft/OSI-Samples-OMF/blob/main/docs/OMF_BASIC_README.md)  
 For the main OMF samples page [ReadMe](https://github.com/osisoft/OSI-Samples-OMF)  
 For the main OSIsoft samples page [ReadMe](https://github.com/osisoft/OSI-Samples)
