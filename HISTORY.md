@@ -1,6 +1,6 @@
 # Version History
 
-## 2.0.5 / 2021-08-10
+## 2.0.5 / 2021-09-10
 
 - Modify gitignore
 
