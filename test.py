@@ -37,7 +37,7 @@ def check_creations(self, sent_data):
 
             endpoint_type = endpoint["EndpointType"]
 
-            if endpoint_type == EndpointTypes.PI.value:
+            if endpoint_type == EndpointTypes.PI:
                 # get point URLs
                 response = send_get_request_to_endpoint(
                     endpoint, path=f'/dataservers?name={endpoint["DataArchiveName"]}')
@@ -163,7 +163,7 @@ def send_get_request_to_endpoint(endpoint, path='', base=''):
     endpoints_type = endpoint["EndpointType"]
     response = {}
     # If the endpoint is OCS
-    if endpoints_type == EndpointTypes.OCS.value:
+    if endpoints_type == EndpointTypes.OCS:
         response = requests.get(
             url.geturl(),
             headers=msg_headers,
@@ -171,14 +171,14 @@ def send_get_request_to_endpoint(endpoint, path='', base=''):
             timeout=endpoint["WebRequestTimeoutSeconds"]
         )
     # If the endpoint is EDS
-    elif endpoints_type == EndpointTypes.EDS.value:
+    elif endpoints_type == EndpointTypes.EDS:
         response = requests.get(
             url.geturl(),
             headers=msg_headers,
             timeout=endpoint["WebRequestTimeoutSeconds"]
         )
     # If the endpoint is PI
-    elif endpoints_type == EndpointTypes.PI.value:
+    elif endpoints_type == EndpointTypes.PI:
         response = requests.get(
             url.geturl(),
             headers=msg_headers,

@@ -22,8 +22,8 @@ from urllib.parse import urlparse
 # Global Variables
 # ************************************************************************
 
-# The version of the OMFmessages
-omfVersion = '1.1'
+# The version of the OMF messages
+omf_version = '1.1'
 
 # The number of seconds to sleep before sending another round of messages
 sleep_time = 1
@@ -53,7 +53,7 @@ def get_token(endpoint):
 
     endpoint_type = endpoint["EndpointType"]
     # return an empty string if the endpoint is not an OCS type
-    if endpoint_type != EndpointTypes.OCS.value:
+    if endpoint_type != EndpointTypes.OCS:
         return ''
 
     if (('expiration' in endpoint) and (endpoint["expiration"] - time.time()) > 5 * 60):
@@ -121,7 +121,7 @@ def send_message_to_omf_endpoint(endpoint, message_type, message_omf_json, actio
     endpoints_type = endpoint["EndpointType"]
     response = {}
     # If the endpoint is OCS
-    if endpoints_type == EndpointTypes.OCS.value:
+    if endpoints_type == EndpointTypes.OCS:
         response = requests.post(
             endpoint["OmfEndpoint"],
             headers=msg_headers,
@@ -130,7 +130,7 @@ def send_message_to_omf_endpoint(endpoint, message_type, message_omf_json, actio
             timeout=endpoint["WebRequestTimeoutSeconds"]
         )
     # If the endpoint is EDS
-    elif endpoints_type == EndpointTypes.EDS.value:
+    elif endpoints_type == EndpointTypes.EDS:
         response = requests.post(
             endpoint["OmfEndpoint"],
             headers=msg_headers,
@@ -138,7 +138,7 @@ def send_message_to_omf_endpoint(endpoint, message_type, message_omf_json, actio
             timeout=endpoint["WebRequestTimeoutSeconds"]
         )
     # If the endpoint is PI
-    elif endpoints_type == EndpointTypes.PI.value:
+    elif endpoints_type == EndpointTypes.PI:
         response = requests.post(
             endpoint["OmfEndpoint"],
             headers=msg_headers,
@@ -176,17 +176,17 @@ def get_headers(endpoint, compression='', message_type='', action=''):
         'messagetype': message_type,
         'action': action,
         'messageformat': 'JSON',
-        'omfversion': omfVersion
+        'omfversion': omf_version
     }
 
     if(compression == 'gzip'):
         msg_headers["compression"] = 'gzip'
 
     # If the endpoint is OCS
-    if endpoint_type == EndpointTypes.OCS.value:
+    if endpoint_type == EndpointTypes.OCS:
         msg_headers["Authorization"] = f'Bearer {get_token(endpoint)}'
     # If the endpoint is PI
-    elif endpoint_type == EndpointTypes.PI.value:
+    elif endpoint_type == EndpointTypes.PI:
         msg_headers["x-requested-with"] = 'xmlhttprequest'
 
     # validate headers to prevent injection attacks
@@ -262,20 +262,21 @@ def get_appsettings():
 
     # for each endpoint construct the check base and OMF endpoint and populate default values
     for endpoint in endpoints:
+        endpoint["EndpointType"] = EndpointTypes(endpoint["EndpointType"])
         endpoint_type = endpoint["EndpointType"]
 
         # If the endpoint is OCS
-        if endpoint_type == EndpointTypes.OCS.value:
+        if endpoint_type == EndpointTypes.OCS:
             base_endpoint = f'{endpoint["Resource"]}/api/{endpoint["ApiVersion"]}' + \
                 f'/tenants/{endpoint["TenantId"]}/namespaces/{endpoint["NamespaceId"]}'
 
         # If the endpoint is EDS
-        elif endpoint_type == EndpointTypes.EDS.value:
+        elif endpoint_type == EndpointTypes.EDS:
             base_endpoint = f'{endpoint["Resource"]}/api/{endpoint["ApiVersion"]}' + \
                 f'/tenants/default/namespaces/default'
 
         # If the endpoint is PI
-        elif endpoint_type == EndpointTypes.PI.value:
+        elif endpoint_type == EndpointTypes.PI:
             base_endpoint = endpoint["Resource"]
 
         else:
