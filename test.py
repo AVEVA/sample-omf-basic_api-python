@@ -118,6 +118,9 @@ def cleanup(self):
     print('Deletes')
     success = True
     for endpoint in endpoints:
+        if not endpoint["Selected"]:
+                continue
+        
         try:
             # delete containers
             for omf_container in omf_containers:
@@ -154,7 +157,7 @@ def send_get_request_to_endpoint(endpoint, path='', base=''):
     # construct and validate url
     url = urlparse(base + path)
     assert url.scheme == 'https' or url.scheme == 'http'
-    assert url.geturl().startswith(endpoint["resource"])
+    assert url.geturl().startswith(endpoint["Resource"])
 
     # Send message to base base
     endpoints_type = endpoint["EndpointType"]

@@ -349,6 +349,9 @@ def main(test=False, last_sent_values={}):
             for omf_datum in omf_data:
                 data_to_send = get_data(omf_datum)
                 for endpoint in endpoints:
+                    if not endpoint["Selected"]:
+                        continue
+                    
                     # send the data
                     send_message_to_omf_endpoint(
                         endpoint, 'data', [data_to_send])
