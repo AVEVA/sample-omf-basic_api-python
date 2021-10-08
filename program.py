@@ -267,7 +267,7 @@ def get_config():
         # If the endpoint is OCS
         if endpoint_type == EndpointTypes.OCS.value:
             base_endpoint = f'{endpoint["Resource"]}/api/{endpoint["ApiVersion"]}' + \
-                f'/tenants/{endpoint["Tenant"]}/namespaces/{endpoint["Namespace"]}'
+                f'/tenants/{endpoint["TenantId"]}/namespaces/{endpoint["NamespaceId"]}'
 
         # If the endpoint is EDS
         elif endpoint_type == EndpointTypes.EDS.value:
