@@ -40,7 +40,7 @@ def check_creations(self, sent_data):
             if endpoint_type == EndpointTypes.PI.value:
                 # get point URLs
                 response = send_get_request_to_endpoint(
-                    endpoint, path=f'/dataservers?name={endpoint["DataServerName"]}')
+                    endpoint, path=f'/dataservers?name={endpoint["DataArchiveName"]}')
                 points_url = response.json()["Links"]["Points"]
                 
                 # get point data and check response
