@@ -32,6 +32,9 @@ def check_creations(self, sent_data):
     success = True
     for endpoint in endpoints:
         try:
+            if not endpoint["Selected"]:
+                continue
+
             endpoint_type = endpoint["EndpointType"]
 
             if endpoint_type == EndpointTypes.PI.value:
