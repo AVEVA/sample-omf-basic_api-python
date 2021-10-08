@@ -26,14 +26,6 @@ resources:
 
 variables:
   - template: '/miscellaneous/build_templates/variables.yml@templates'
-  - name: CredFile
-    value: config.json
-  - name: CredFileLibrary
-    value: product-readines.omf-basic_api-python.ocs.json
-  - name: CredFileLibraryOP
-    value: product-readines.omf-basic_api-python.pi.json
-  - name: CredFileLibraryEDS
-    value: product-readines.omf-basic_api-python.eds.json
   - name: analysisProject
     value: OMF_API_Python
 
@@ -42,11 +34,25 @@ jobs:
     pool:
       name: 00-OSIManaged-Containers
       demands: Agent.OS -equals Linux
+    variables:
+      - name: Endpoints.0.Selected
+        value: true
+      - name: Endpoints.1.Selected
+        value: false
+      - name: Endpoints.2.Selected
+        value: false
+      - name: Endpoints.0.TenantId
+        value: $(TenantId)
+      - name: Endpoints.0.NamespaceId
+        value: $(NamespaceId)
+      - name: Endpoints.0.ClientId
+        value: $(ClientId)
+      - name: Endpoints.0.ClientSecret
+        value: $(ClientSecret)
     steps:
-      - template: '/miscellaneous/build_templates/config.yml@templates'
+      - template: '/miscellaneous/build_templates/appsettings.yml@templates'
         parameters:
-          fileOriginal: $(CredFile)
-          fileLibrary: $(CredFileLibrary)
+          secrets: 'TenantId, NamespaceId, ClientId, ClientSecret'
 
       - script: |
           echo Install tools
@@ -73,11 +79,25 @@ jobs:
     pool:
       name: 00-OSIManaged-Test
       demands: COMPUTERNAME -equals $(buildAgent)
+    variables:
+      - name: Endpoints.0.Selected
+        value: false
+      - name: Endpoints.1.Selected
+        value: false
+      - name: Endpoints.2.Selected
+        value: true
+      - name: Endpoints.2.Resource
+        value: $(PIWebAPI)
+      - name: Endpoints.2.Username
+        value: $(Username)
+      - name: Endpoints.2.Password
+        value: $(Password)
+      - name: Endpoints.2.DataArchiveName
+        value: $(DataArchiveName)
     steps:
-      - template: '/miscellaneous/build_templates/config.yml@templates'
+      - template: '/miscellaneous/build_templates/appsettings.yml@templates'
         parameters:
-          fileOriginal: $(CredFile)
-          fileLibrary: $(CredFileLibraryOP)
+          secrets: 'Username, Password, PIWebAPI, DataArchiveName'
 
       - script: pip install -r requirements.txt
         displayName: 'Install requirements'
@@ -97,11 +117,15 @@ jobs:
     pool:
       name: 00-OSIManaged-Test
       demands: COMPUTERNAME -equals $(buildAgent)
+    variables:
+      - name: Endpoints.0.Selected
+        value: false
+      - name: Endpoints.1.Selected
+        value: true
+      - name: Endpoints.2.Selected
+        value: false
     steps:
-      - template: '/miscellaneous/build_templates/config.yml@templates'
-        parameters:
-          fileOriginal: $(CredFile)
-          fileLibrary: $(CredFileLibraryEDS)
+      - template: '/miscellaneous/build_templates/appsettings.yml@templates'
 
       - script: pip install -r requirements.txt
         displayName: 'Install requirements'

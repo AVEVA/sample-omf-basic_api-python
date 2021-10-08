@@ -32,12 +32,12 @@ def check_creations(self, sent_data):
     success = True
     for endpoint in endpoints:
         try:
-            endpoint_type = endpoint["endpoint-type"]
+            endpoint_type = endpoint["EndpointType"]
 
             if endpoint_type == EndpointTypes.PI.value:
                 # get point URLs
                 response = send_get_request_to_endpoint(
-                    endpoint, path=f'/dataservers?name={endpoint["data-server-name"]}')
+                    endpoint, path=f'/dataservers?name={endpoint["DataServerName"]}')
                 points_url = response.json()["Links"]["Points"]
                 
                 # get point data and check response
@@ -141,7 +141,7 @@ def send_get_request_to_endpoint(endpoint, path='', base=''):
     '''Sends the get request to the path relative to the base base and returns the response'''
 
     if base == '':
-        base = endpoint["base-endpoint"]
+        base = endpoint["BaseEndpoint"]
 
     # Collect the message headers
     msg_headers = get_headers(endpoint)
@@ -154,31 +154,31 @@ def send_get_request_to_endpoint(endpoint, path='', base=''):
     assert url.geturl().startswith(endpoint["resource"])
 
     # Send message to base base
-    endpoints_type = endpoint["endpoint-type"]
+    endpoints_type = endpoint["EndpointType"]
     response = {}
     # If the endpoint is OCS
     if endpoints_type == EndpointTypes.OCS.value:
         response = requests.get(
             url.geturl(),
             headers=msg_headers,
-            verify=endpoint["verify-ssl"],
-            timeout=endpoint["web-request-timeout-seconds"]
+            verify=endpoint["VerifySSL"],
+            timeout=endpoint["WebRequestTimeoutSeconds"]
         )
     # If the endpoint is EDS
     elif endpoints_type == EndpointTypes.EDS.value:
         response = requests.get(
             url.geturl(),
             headers=msg_headers,
-            timeout=endpoint["web-request-timeout-seconds"]
+            timeout=endpoint["WebRequestTimeoutSeconds"]
         )
     # If the endpoint is PI
     elif endpoints_type == EndpointTypes.PI.value:
         response = requests.get(
             url.geturl(),
             headers=msg_headers,
-            verify=endpoint["verify-ssl"],
-            timeout=endpoint["web-request-timeout-seconds"],
-            auth=(endpoint["username"], endpoint["password"])
+            verify=endpoint["VerifySSL"],
+            timeout=endpoint["WebRequestTimeoutSeconds"],
+            auth=(endpoint["Username"], endpoint["Password"])
         )
 
     return(response)
