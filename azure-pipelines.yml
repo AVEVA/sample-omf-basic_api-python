@@ -94,6 +94,8 @@ jobs:
         value: $(Password)
       - name: Endpoints.2.DataArchiveName
         value: $(DataArchiveName)
+      - name: Endpoints.2.VerifySSL
+        value: false
     steps:
       - template: '/miscellaneous/build_templates/appsettings.yml@templates'
         parameters:
