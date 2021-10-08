@@ -5,7 +5,7 @@ import json
 import os
 from urllib.parse import urlparse
 from program import main, get_headers, endpoints, EndpointTypes,\
-    get_json_file, send_message_to_omf_endpoint, get_config
+    get_json_file, send_message_to_omf_endpoint, get_appsettings
 
 
 class ProgramTestCase(unittest.TestCase):
@@ -22,7 +22,7 @@ class ProgramTestCase(unittest.TestCase):
 def check_creations(self, sent_data):
     global endpoints
 
-    endpoints = get_config()
+    endpoints = get_appsettings()
     omf_types = get_json_file('OMF-Types.json')
     omf_containers = get_json_file('OMF-Containers.json')
     omf_data = get_json_file('OMF-Data.json')
@@ -110,7 +110,7 @@ def check_creations(self, sent_data):
 def cleanup(self):
     global endpoints
 
-    endpoints = get_config()
+    endpoints = get_appsettings()
     omf_types = get_json_file('OMF-Types.json')
     omf_containers = get_json_file('OMF-Containers.json')
 
