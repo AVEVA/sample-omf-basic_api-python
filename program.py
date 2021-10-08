@@ -254,8 +254,8 @@ def get_json_file(filename):
     return loaded_json
 
 
-def get_config():
-    ''' Return the config.json as a config file, while also populating base_endpoint, omf_endpoint, and default values'''
+def get_appsettings():
+    ''' Return the appsettings.json as a json object, while also populating base_endpoint, omf_endpoint, and default values'''
 
     # Try to open the configuration file
     endpoints = get_json_file('appsettings.json')["Endpoints"]
@@ -306,8 +306,8 @@ def main(test=False, last_sent_values={}):
 
     success = True
 
-    # Step 1 - Read endpoint configurations from config.json
-    endpoints = get_config()
+    # Step 1 - Read endpoint configurations from appsettings.json
+    endpoints = get_appsettings()
 
     # Step 2 - Get OMF Types
     omf_types = get_json_file('OMF-Types.json')
@@ -318,7 +318,7 @@ def main(test=False, last_sent_values={}):
     # Step 4 - Get OMF Data
     omf_data = get_json_file('OMF-Data.json')
 
-    # Send messages and check for each endpoint in config.json
+    # Send messages and check for each endpoint in appsettings.json
 
     try:
         # Send out the messages that only need to be sent once
