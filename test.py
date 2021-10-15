@@ -32,9 +32,6 @@ def check_creations(self, sent_data):
     success = True
     for endpoint in endpoints:
         try:
-            if not endpoint["Selected"]:
-                continue
-
             endpoint_type = endpoint["EndpointType"]
 
             if endpoint_type == EndpointTypes.PI:
@@ -118,9 +115,6 @@ def cleanup(self):
     print('Deletes')
     success = True
     for endpoint in endpoints:
-        if not endpoint["Selected"]:
-                continue
-        
         try:
             # delete containers
             for omf_container in omf_containers:

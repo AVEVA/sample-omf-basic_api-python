@@ -259,9 +259,14 @@ def get_appsettings():
 
     # Try to open the configuration file
     endpoints = get_json_file('appsettings.json')["Endpoints"]
+    
+    filtered_endpoints = []
+    for endpoint in endpoints:
+        if endpoint["Selected"]:
+            filtered_endpoints.append(endpoint)
 
     # for each endpoint construct the check base and OMF endpoint and populate default values
-    for endpoint in endpoints:
+    for endpoint in filtered_endpoints:
         endpoint["EndpointType"] = EndpointTypes(endpoint["EndpointType"])
         endpoint_type = endpoint["EndpointType"]
 
@@ -298,7 +303,7 @@ def get_appsettings():
         if 'WebRequestTimeoutSeconds' not in endpoint or endpoint["WebRequestTimeoutSeconds"] == None:
             endpoint["WebRequestTimeoutSeconds"] = 30
 
-    return endpoints
+    return filtered_endpoints
 
 
 def main(test=False, last_sent_values={}):
@@ -324,8 +329,6 @@ def main(test=False, last_sent_values={}):
     try:
         # Send out the messages that only need to be sent once
         for endpoint in endpoints:
-            if not endpoint["Selected"]:
-                continue
 
             if not endpoint["VerifySSL"]:
                 print('You are not verifying the certificate of the end point.  This is not advised for any system as there are security issues with doing this.')
@@ -350,9 +353,7 @@ def main(test=False, last_sent_values={}):
             for omf_datum in omf_data:
                 data_to_send = get_data(omf_datum)
                 for endpoint in endpoints:
-                    if not endpoint["Selected"]:
-                        continue
-                    
+
                     # send the data
                     send_message_to_omf_endpoint(
                         endpoint, 'data', [data_to_send])
