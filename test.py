@@ -5,7 +5,7 @@ import json
 import os
 from urllib.parse import urlparse
 from program import main, get_headers, endpoints, EndpointTypes,\
-    get_json_file, send_message_to_omf_endpoint, get_config
+    get_json_file, send_message_to_omf_endpoint, get_appsettings
 
 
 class ProgramTestCase(unittest.TestCase):
@@ -22,7 +22,7 @@ class ProgramTestCase(unittest.TestCase):
 def check_creations(self, sent_data):
     global endpoints
 
-    endpoints = get_config()
+    endpoints = get_appsettings()
     omf_types = get_json_file('OMF-Types.json')
     omf_containers = get_json_file('OMF-Containers.json')
     omf_data = get_json_file('OMF-Data.json')
@@ -32,12 +32,12 @@ def check_creations(self, sent_data):
     success = True
     for endpoint in endpoints:
         try:
-            endpoint_type = endpoint["endpoint-type"]
+            endpoint_type = endpoint["EndpointType"]
 
-            if endpoint_type == EndpointTypes.PI.value:
+            if endpoint_type == EndpointTypes.PI:
                 # get point URLs
                 response = send_get_request_to_endpoint(
-                    endpoint, path=f'/dataservers?name={endpoint["data-server-name"]}')
+                    endpoint, path=f'/dataservers?name={endpoint["DataArchiveName"]}')
                 points_url = response.json()["Links"]["Points"]
                 
                 # get point data and check response
@@ -107,7 +107,7 @@ def check_creations(self, sent_data):
 def cleanup(self):
     global endpoints
 
-    endpoints = get_config()
+    endpoints = get_appsettings()
     omf_types = get_json_file('OMF-Types.json')
     omf_containers = get_json_file('OMF-Containers.json')
 
@@ -141,7 +141,7 @@ def send_get_request_to_endpoint(endpoint, path='', base=''):
     '''Sends the get request to the path relative to the base base and returns the response'''
 
     if base == '':
-        base = endpoint["base-endpoint"]
+        base = endpoint["BaseEndpoint"]
 
     # Collect the message headers
     msg_headers = get_headers(endpoint)
@@ -151,34 +151,34 @@ def send_get_request_to_endpoint(endpoint, path='', base=''):
     # construct and validate url
     url = urlparse(base + path)
     assert url.scheme == 'https' or url.scheme == 'http'
-    assert url.geturl().startswith(endpoint["resource"])
+    assert url.geturl().startswith(endpoint["Resource"])
 
     # Send message to base base
-    endpoints_type = endpoint["endpoint-type"]
+    endpoints_type = endpoint["EndpointType"]
     response = {}
     # If the endpoint is OCS
-    if endpoints_type == EndpointTypes.OCS.value:
+    if endpoints_type == EndpointTypes.OCS:
         response = requests.get(
             url.geturl(),
             headers=msg_headers,
-            verify=endpoint["verify-ssl"],
-            timeout=endpoint["web-request-timeout-seconds"]
+            verify=endpoint["VerifySSL"],
+            timeout=endpoint["WebRequestTimeoutSeconds"]
         )
     # If the endpoint is EDS
-    elif endpoints_type == EndpointTypes.EDS.value:
+    elif endpoints_type == EndpointTypes.EDS:
         response = requests.get(
             url.geturl(),
             headers=msg_headers,
-            timeout=endpoint["web-request-timeout-seconds"]
+            timeout=endpoint["WebRequestTimeoutSeconds"]
         )
     # If the endpoint is PI
-    elif endpoints_type == EndpointTypes.PI.value:
+    elif endpoints_type == EndpointTypes.PI:
         response = requests.get(
             url.geturl(),
             headers=msg_headers,
-            verify=endpoint["verify-ssl"],
-            timeout=endpoint["web-request-timeout-seconds"],
-            auth=(endpoint["username"], endpoint["password"])
+            verify=endpoint["VerifySSL"],
+            timeout=endpoint["WebRequestTimeoutSeconds"],
+            auth=(endpoint["Username"], endpoint["Password"])
         )
 
     return(response)
