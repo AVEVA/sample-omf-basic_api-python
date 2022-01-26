@@ -156,8 +156,8 @@ def send_get_request_to_endpoint(endpoint, path='', base=''):
     # Send message to base base
     endpoints_type = endpoint["EndpointType"]
     response = {}
-    # If the endpoint is OCS
-    if endpoints_type == EndpointTypes.OCS:
+    # If the endpoint is ADH
+    if endpoints_type == EndpointTypes.ADH:
         response = requests.get(
             url.geturl(),
             headers=msg_headers,
