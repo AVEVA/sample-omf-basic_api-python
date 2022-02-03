@@ -53,6 +53,8 @@ jobs:
         value: $(ClientId)
       - name: Endpoints.0.ClientSecret
         value: $(ClientSecret)
+      - name: Endpoints.0.Resource
+        value: $(Resource)
     steps:
       - template: '/miscellaneous/build_templates/appsettings.yml@templates'
         parameters:
