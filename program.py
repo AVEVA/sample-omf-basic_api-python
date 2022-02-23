@@ -267,8 +267,12 @@ def get_appsettings():
 
     # for each endpoint construct the check base and OMF endpoint and populate default values
     for endpoint in filtered_endpoints:
-        endpoint["EndpointType"] = EndpointTypes(endpoint["EndpointType"])
-        endpoint_type = endpoint["EndpointType"]
+        if endpoint["EndpointType"] == 'OCS':
+            print('OCS endpoint type is deprecated as OSIsoft Cloud Services has now been migrated to AVEVA Data Hub, using ADH type instead.')
+            endpoint_type = EndpointTypes.ADH
+        else:
+            endpoint["EndpointType"] = EndpointTypes(endpoint["EndpointType"])
+            endpoint_type = endpoint["EndpointType"]
 
         # If the endpoint is ADH
         if endpoint_type == EndpointTypes.ADH:
