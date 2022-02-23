@@ -39,7 +39,7 @@ boolean_value_2 = 1
 
 
 class EndpointTypes(enum.Enum):
-    OCS = 'OCS'
+    ADH = 'ADH'
     EDS = 'EDS'
     PI = 'PI'
 
@@ -52,8 +52,8 @@ def get_token(endpoint):
     '''Gets the token for the omfendpoint'''
 
     endpoint_type = endpoint["EndpointType"]
-    # return an empty string if the endpoint is not an OCS type
-    if endpoint_type != EndpointTypes.OCS:
+    # return an empty string if the endpoint is not an ADH type
+    if endpoint_type != EndpointTypes.ADH:
         return ''
 
     if (('expiration' in endpoint) and (endpoint["expiration"] - time.time()) > 5 * 60):
@@ -120,8 +120,8 @@ def send_message_to_omf_endpoint(endpoint, message_type, message_omf_json, actio
     # Send message to OMF endpoint
     endpoints_type = endpoint["EndpointType"]
     response = {}
-    # If the endpoint is OCS
-    if endpoints_type == EndpointTypes.OCS:
+    # If the endpoint is ADH
+    if endpoints_type == EndpointTypes.ADH:
         response = requests.post(
             endpoint["OmfEndpoint"],
             headers=msg_headers,
@@ -182,8 +182,8 @@ def get_headers(endpoint, compression='', message_type='', action=''):
     if(compression == 'gzip'):
         msg_headers["compression"] = 'gzip'
 
-    # If the endpoint is OCS
-    if endpoint_type == EndpointTypes.OCS:
+    # If the endpoint is ADH
+    if endpoint_type == EndpointTypes.ADH:
         msg_headers["Authorization"] = f'Bearer {get_token(endpoint)}'
     # If the endpoint is PI
     elif endpoint_type == EndpointTypes.PI:
@@ -267,11 +267,15 @@ def get_appsettings():
 
     # for each endpoint construct the check base and OMF endpoint and populate default values
     for endpoint in filtered_endpoints:
-        endpoint["EndpointType"] = EndpointTypes(endpoint["EndpointType"])
-        endpoint_type = endpoint["EndpointType"]
+        if endpoint["EndpointType"] == 'OCS':
+            print('OCS endpoint type is deprecated as OSIsoft Cloud Services has now been migrated to AVEVA Data Hub, using ADH type instead.')
+            endpoint_type = EndpointTypes.ADH
+        else:
+            endpoint["EndpointType"] = EndpointTypes(endpoint["EndpointType"])
+            endpoint_type = endpoint["EndpointType"]
 
-        # If the endpoint is OCS
-        if endpoint_type == EndpointTypes.OCS:
+        # If the endpoint is ADH
+        if endpoint_type == EndpointTypes.ADH:
             base_endpoint = f'{endpoint["Resource"]}/api/{endpoint["ApiVersion"]}' + \
                 f'/tenants/{endpoint["TenantId"]}/namespaces/{endpoint["NamespaceId"]}'
 
