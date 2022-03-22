@@ -83,8 +83,8 @@ jobs:
 
   - job: Tests_OnPrem
     pool:
-      name: 00-OSIManaged-Test
-      demands: COMPUTERNAME -equals $(buildAgent)
+      name: 00-OSIManaged-Containers
+      demands: Agent.OS -equals Linux
     variables:
       - name: Endpoints.0.Selected
         value: false
@@ -107,10 +107,17 @@ jobs:
         parameters:
           secrets: 'Username, Password, PIWebAPI, DataArchiveName'
 
-      - script: pip install -r requirements.txt
-        displayName: 'Install requirements'
-
-      - script: python -m pytest --junitxml=junit/test-results.xml ./test.py
+      - script: |
+          echo Install tools
+          pip install setuptools wheel
+          pip install unittest-xml-reporting    
+          pip install pytest
+          pip install pytest-cov
+          echo Install requirements
+          pip install -r requirements.txt
+          echo Run tests
+          python -m pytest ./test.py --junitxml=junit/test-results.xml 
+          echo Complete
         displayName: 'Run tests'
 
       - task: PublishTestResults@2
