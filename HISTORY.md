@@ -1,5 +1,9 @@
 # Version History
 
+## 2.1.2 / 2022-03-24
+
+- Changed agent used in pipeline
+
 ## 2.1.1 / 2022-03-22
 
 - Changed agent used in pipeline
