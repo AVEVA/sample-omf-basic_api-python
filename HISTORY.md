@@ -1,5 +1,9 @@
 # Version History
 
+## 2.1.3 / 2022-04-29
+
+- Updated pipeline status badge links in readme
+
 ## 2.1.2 / 2022-03-24
 
 - Changed agent used in pipeline
