@@ -38,7 +38,7 @@ parameters:
     default: Agent.OS -equals Linux
   - name: containerDemandsEDS
     default: PYTHON
-  - name: containerDemandsPI
+  - name: containerDemandsOnPrem
     default: Agent.OS -equals Linux
 
 
