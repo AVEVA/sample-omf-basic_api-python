@@ -1,5 +1,9 @@
 # Version History
 
+## 2.1.4 / 2022-06-15
+
+- Parameterize Azure Pipeline container demands
+
 ## 2.1.3 / 2022-04-29
 
 - Updated pipeline status badge links in readme
