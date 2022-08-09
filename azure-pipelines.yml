@@ -34,19 +34,27 @@ variables:
     value: OMF_API_Python
 
 parameters:
+  - name: poolADH
+    default: 00-OSIManaged-Containers
   - name: containerDemandsADH
-    default: Agent.OS -equals Linux
+    type: object
+    default: ['Agent.OS -equals Linux']
+  - name: poolPI
+    default: 00-OSIManaged-Containers
+  - name: containerDemandsPI
+    type: object
+    default: ['Agent.OS -equals Linux']
+  - name: poolEDS
+    default: 00-OSIManaged-Build
   - name: containerDemandsEDS
-    default: PYTHON
-  - name: containerDemandsOnPrem
-    default: Agent.OS -equals Linux
-
+    type: object
+    default: ['PYTHON']
 
 jobs:
   - job: Tests_ADH
     condition: ne(variables['Build.Reason'], 'Schedule')
     pool:
-      name: 00-OSIManaged-Containers
+      name: ${{ parameters.poolADH }}
       demands: ${{ parameters.containerDemandsADH }}
     variables:
       - name: Endpoints.0.Selected
@@ -91,11 +99,11 @@ jobs:
           testRunTitle: '$(Agent.JobName) on $(Agent.OS)'
         displayName: 'Publish test results'
 
-  - job: Tests_OnPrem
+  - job: Tests_PI
     condition: ne(variables['Build.Reason'], 'Schedule')
     pool:
-      name: 00-OSIManaged-Containers
-      demands: ${{ parameters.containerDemandsOnPrem }}
+      name: ${{ parameters.poolPI }}
+      demands: ${{ parameters.containerDemandsPI }}
     variables:
       - name: Endpoints.0.Selected
         value: false
@@ -142,7 +150,7 @@ jobs:
   - job: Tests_EDS
     condition: ne(variables['Build.Reason'], 'Schedule')
     pool:
-      name: 00-OSIManaged-Build
+      name: ${{ parameters.poolEDS }}
       demands: ${{ parameters.containerDemandsEDS }}
     variables:
       - name: Endpoints.0.Selected
