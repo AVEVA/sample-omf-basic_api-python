@@ -18,8 +18,6 @@ resources:
 
 variables:
   - template: '/miscellaneous/build_templates/variables.yml@templates'
-  - name: analysisProject
-    value: OMF_API_Python
 
 parameters:
   - name: poolADH
