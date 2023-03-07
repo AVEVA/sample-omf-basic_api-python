@@ -16,6 +16,10 @@ schedules:
       include:
         - main
     always: true
+    
+variables:
+  - name: analysisProject
+    value: OMF_API_Python
 
 resources:
   repositories:
