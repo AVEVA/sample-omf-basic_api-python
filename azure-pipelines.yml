@@ -84,7 +84,7 @@ jobs:
           testRunTitle: '$(Agent.JobName) on $(Agent.OS)'
         displayName: 'Publish test results'
 
-  - job: Tests_PI
+  - job: Tests_OnPrem
     pool:
       name: ${{ parameters.poolPI }}
       demands: ${{ parameters.containerDemandsPI }}
