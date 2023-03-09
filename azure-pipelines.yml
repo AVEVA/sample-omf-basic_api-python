@@ -9,20 +9,8 @@ pr:
     include:
       - main
 
-schedules:
-  - cron: '0 0 * * 0'
-    displayName: Weekly build
-    branches:
-      include:
-        - main
-    always: true
-
 resources:
   repositories:
-    - repository: OpsGuildAutomationRepo
-      type: git
-      name: Engineering/OpsGuild.Automation
-      ref: refs/heads/main
     - repository: templates
       type: github
       name: osisoft/OSI-Samples
@@ -30,8 +18,6 @@ resources:
 
 variables:
   - template: '/miscellaneous/build_templates/variables.yml@templates'
-  - name: analysisProject
-    value: OMF_API_Python
 
 parameters:
   - name: poolADH
@@ -52,7 +38,6 @@ parameters:
 
 jobs:
   - job: Tests_ADH
-    condition: ne(variables['Build.Reason'], 'Schedule')
     pool:
       name: ${{ parameters.poolADH }}
       demands: ${{ parameters.containerDemandsADH }}
@@ -99,8 +84,7 @@ jobs:
           testRunTitle: '$(Agent.JobName) on $(Agent.OS)'
         displayName: 'Publish test results'
 
-  - job: Tests_PI
-    condition: ne(variables['Build.Reason'], 'Schedule')
+  - job: Tests_OnPrem
     pool:
       name: ${{ parameters.poolPI }}
       demands: ${{ parameters.containerDemandsPI }}
@@ -148,7 +132,6 @@ jobs:
         displayName: 'Publish test results'
 
   - job: Tests_EDS
-    condition: ne(variables['Build.Reason'], 'Schedule')
     pool:
       name: ${{ parameters.poolEDS }}
       demands: ${{ parameters.containerDemandsEDS }}
@@ -182,7 +165,3 @@ jobs:
           failTaskOnFailedTests: true
           testRunTitle: '$(Agent.JobName) on $(Agent.OS)'
         displayName: 'Publish test results'
-
-  - template: '/miscellaneous/build_templates/code-analysis.yml@templates'
-    parameters:
-      useRequirementsTxt: true
