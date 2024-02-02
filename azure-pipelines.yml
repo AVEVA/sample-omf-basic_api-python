@@ -13,20 +13,19 @@ resources:
   repositories:
     - repository: templates
       type: github
-      name: osisoft/OSI-Samples
-      endpoint: osisoft/OSI-Samples
+      name: AVEVA/AVEVA-Samples
+      endpoint: AVEVA
 
 variables:
-  - template: '/miscellaneous/build_templates/variables.yml@templates'
 
 parameters:
   - name: poolADH
-    default: 00-OSIManaged-Containers
+    default: DevOps Managed Containers Build
   - name: containerDemandsADH
     type: object
     default: ['Agent.OS -equals Linux']
   - name: poolPI
-    default: 00-OSIManaged-Containers
+    default: DevOps Managed Containers Build
   - name: containerDemandsPI
     type: object
     default: ['Agent.OS -equals Linux']

@@ -1,5 +1,9 @@
 # Version History
 
+## 2.1.9 / 2023-10-13
+
+- Migrate Pipelines
+
 ## 2.1.8 / 2023-03-07
 
 - Move code analysis to new pipeline
