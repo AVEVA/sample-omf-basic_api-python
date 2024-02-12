@@ -16,8 +16,6 @@ resources:
       name: AVEVA/AVEVA-Samples
       endpoint: AVEVA
 
-variables:
-
 parameters:
   - name: poolADH
     default: DevOps Managed Containers Build
@@ -30,7 +28,7 @@ parameters:
     type: object
     default: ['Agent.OS -equals Linux']
   - name: poolEDS
-    default: 00-OSIManaged-Build
+    default: DevOps Managed Containers Build
   - name: containerDemandsEDS
     type: object
     default: ['PYTHON']
