@@ -1,6 +1,6 @@
 # NOTE: this script was designed using the v1.1
 # version of the OMF specification, as outlined here:
-# https://omf-docs.osisoft.com/documentation_v11/Whats_New.html
+# https://docs.aveva.com/bundle/omf/page/1283983.html
 # *************************************************************************************
 
 # ************************************************************************
@@ -23,7 +23,7 @@ from urllib.parse import urlparse
 # ************************************************************************
 
 # The version of the OMF messages
-omf_version = '1.1'
+omf_version = '1.2'
 
 # The number of seconds to sleep before sending another round of messages
 sleep_time = 1
@@ -39,7 +39,7 @@ boolean_value_2 = 1
 
 
 class EndpointTypes(enum.Enum):
-    ADH = 'ADH'
+    CDS = 'CDS'
     EDS = 'EDS'
     PI = 'PI'
 
@@ -52,8 +52,8 @@ def get_token(endpoint):
     '''Gets the token for the omfendpoint'''
 
     endpoint_type = endpoint["EndpointType"]
-    # return an empty string if the endpoint is not an ADH type
-    if endpoint_type != EndpointTypes.ADH:
+    # return an empty string if the endpoint is not an CDS type
+    if endpoint_type != EndpointTypes.CDS:
         return ''
 
     if (('expiration' in endpoint) and (endpoint["expiration"] - time.time()) > 5 * 60):
@@ -120,8 +120,8 @@ def send_message_to_omf_endpoint(endpoint, message_type, message_omf_json, actio
     # Send message to OMF endpoint
     endpoints_type = endpoint["EndpointType"]
     response = {}
-    # If the endpoint is ADH
-    if endpoints_type == EndpointTypes.ADH:
+    # If the endpoint is CDS
+    if endpoints_type == EndpointTypes.CDS:
         response = requests.post(
             endpoint["OmfEndpoint"],
             headers=msg_headers,
@@ -182,8 +182,8 @@ def get_headers(endpoint, compression='', message_type='', action=''):
     if(compression == 'gzip'):
         msg_headers["compression"] = 'gzip'
 
-    # If the endpoint is ADH
-    if endpoint_type == EndpointTypes.ADH:
+    # If the endpoint is CDS
+    if endpoint_type == EndpointTypes.CDS:
         msg_headers["Authorization"] = f'Bearer {get_token(endpoint)}'
     # If the endpoint is PI
     elif endpoint_type == EndpointTypes.PI:
@@ -268,14 +268,14 @@ def get_appsettings():
     # for each endpoint construct the check base and OMF endpoint and populate default values
     for endpoint in filtered_endpoints:
         if endpoint["EndpointType"] == 'OCS':
-            print('OCS endpoint type is deprecated as OSIsoft Cloud Services has now been migrated to CONNECT data services, using ADH type instead.')
-            endpoint_type = EndpointTypes.ADH
+            print('OCS endpoint type is deprecated as OSIsoft Cloud Services has now been migrated to AVEVA Data Hub, using CDS type instead.')
+            endpoint_type = EndpointTypes.CDS
         else:
             endpoint["EndpointType"] = EndpointTypes(endpoint["EndpointType"])
             endpoint_type = endpoint["EndpointType"]
 
-        # If the endpoint is ADH
-        if endpoint_type == EndpointTypes.ADH:
+        # If the endpoint is CDS
+        if endpoint_type == EndpointTypes.CDS:
             base_endpoint = f'{endpoint["Resource"]}/api/{endpoint["ApiVersion"]}' + \
                 f'/tenants/{endpoint["TenantId"]}/namespaces/{endpoint["NamespaceId"]}'
 

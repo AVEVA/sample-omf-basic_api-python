@@ -1,5 +1,10 @@
 # Version History
 
+## 2.2.0 / 2025-01-10
+
+- Upgrade to OMF 1.2
+- Update ADH references to Cds
+
 ## 2.1.9 / 2023-10-13
 
 - Migrate Pipelines

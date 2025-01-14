@@ -1,6 +1,6 @@
 # Building a Python client to send OMF to PI or Cds
 
-**Version:** 2.1.9
+**Version:** 2.2.0
 
 | Cds Test Status                                                                                                                                                                                                                                                                                                                                                    | EDS Test Status                                                                                                                                                                                                                                                                                                                                                    | PI Test Status                                                                                                                                                                                                                                                                                                                                                        |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -32,7 +32,7 @@ The samples were built and tested against Python 3. If you are using a different
 
 ## Customizing the Application
 
-This application can be customized to send your own custom types, containers, and data by modifying the [OMF-Types.json](OMF-Types.json) [OMF-Containers.json](OMF-Containers.json), and [OMF-Data.json](OMF-Data.json) files respectively. Each one of these files contains an array of OMF json objects, which are created in the endpoints specified in [appsettings.json](appsettings.placeholder.json) when the application is run. For more information on forming OMF messages, please refer to our [OMF version 1.1 documentation](https://docs.aveva.com/search?labelkey=OSIsoft-Message-Format_1.1).
+This application can be customized to send your own custom types, containers, and data by modifying the [OMF-Types.json](OMF-Types.json) [OMF-Containers.json](OMF-Containers.json), and [OMF-Data.json](OMF-Data.json) files respectively. Each one of these files contains an array of OMF json objects, which are created in the endpoints specified in [appsettings.json](appsettings.placeholder.json) when the application is run. For more information on forming OMF messages, please refer to our [OMF version 1.2 documentation](https://docs.aveva.com/bundle/omf/page/1283983.html).
 
 In addition to modifying the json files mentioned above, the get_data function in [program.py](program.py) should be updated to populate the OMF data messages specified in [OMF-Data.json](OMF-Data.json) with data from your data source. Finally, if there are any other activities that you would like to be running continuously, this logic can be added under the while loop in the main() function of [program.py](program.py).
 
@@ -40,18 +40,18 @@ In addition to modifying the json files mentioned above, the get_data function i
 
 The sample is configured using the file [appsettings.placeholder.json](appsettings.placeholder.json). Before editing, rename this file to `appsettings.json`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
 
-The application can be configured to send to any number of endpoints specified in the endpoints array within appsettings.json. In addition, there are three types of endpoints: [Cds](#adh-endpoint-configuration), [EDS](#eds-endpoint-configuration), and [PI](#pi-endpoint-configuration). Each of the 3 types of enpoints are configured differently and their configurations are explained in the sections below.
+The application can be configured to send to any number of endpoints specified in the endpoints array within appsettings.json. In addition, there are three types of endpoints: [Cds](#cds-endpoint-configuration), [EDS](#eds-endpoint-configuration), and [PI](#pi-endpoint-configuration). Each of the 3 types of enpoints are configured differently and their configurations are explained in the sections below.
 
 ### Cds Endpoint Configuration
 
-An OMF ingress client must be configured. On our [Aveva Learning](https://www.youtube.com/channel/UC333r4jIeHaY-rGgMjON54g) Channel on YouTube we have a video on [Creating an OMF Connection](https://www.youtube.com/watch?v=52lAnkGC1IM).
+An OMF ingress client must be configured. On our [Aveva PI System Learning](https://www.youtube.com/channel/UC333r4jIeHaY-rGgMjON54g) Channel on YouTube we have a video on [Creating an OMF Connection](https://www.youtube.com/watch?v=52lAnkGC1IM).
 
-The format of the configuration for an Cds endpoint is shown below along with descriptions of each parameter. Replace all parameters with appropriate values.
+The format of the configuration for an CDS endpoint is shown below along with descriptions of each parameter. Replace all parameters with appropriate values.
 
 ```json
 {
   "Selected": true,
-  "EndpointType": "ADH",
+  "EndpointType": "CDS",
   "Resource": "https://uswe.datahub.connect.aveva.com",
   "NamespaceId": "PLACEHOLDER_REPLACE_WITH_NAMESPACE_ID",
   "Tenant": "PLACEHOLDER_REPLACE_WITH_TENANT_ID",
@@ -67,15 +67,15 @@ The format of the configuration for an Cds endpoint is shown below along with de
 | Parameters               | Required | Type    | Description                                                                                                                                                      |
 | ------------------------ | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Selected                 | required | boolean | Tells the application if the endpoint should be sent to                                                                                                          |
-| EndpointType             | required | string  | The endpoint type. For ADH this will always be "ADH"                                                                                                             |
-| Resource                 | required | string  | The endpoint for ADH if the namespace. If the tenant/namespace is located in NA, it is https://uswe.datahub.connect.aveva.com and if in EMEA, it is https://euno.datahub.connect.aveva.com  |
-| NamespaceID              | required | string  | The name of the Namespace in ADH that is being sent to                                                                                                           |
-| Tenant                   | required | string  | The Tenant ID of the Tenant in ADH that is being sent to                                                                                                         |
-| ClientId                 | required | string  | The client ID that is being used for authenticating to ADH                                                                                                       |
-| ClientSecret             | required | string  | The client secret that is being used for authenticating to ADH                                                                                                   |
-| ApiVersion               | required | string  | The API version of the ADH endpoint                                                                                                                              |
-| VerifySSL                | optional | boolean | A feature flag for verifying SSL when connecting to the ADH endpoint. By defualt this is set to true as it is strongly recommended that SSL be checked           |
-| UseCompression           | optional | boolean | A feature flag for enabling compression on messages sent to the ADH endpoint                                                                                     |
+| EndpointType             | required | string  | The endpoint type. For CDS this will always be "CDS"                                                                                                             |
+| Resource                 | required | string  | The endpoint for CDS if the namespace. If the tenant/namespace is located in NA, it is https://uswe.datahub.connect.aveva.com and if in EMEA, it is https://euno.datahub.connect.aveva.com  |
+| NamespaceID              | required | string  | The name of the Namespace in CDS that is being sent to                                                                                                           |
+| Tenant                   | required | string  | The Tenant ID of the Tenant in CDS that is being sent to                                                                                                         |
+| ClientId                 | required | string  | The client ID that is being used for authenticating to CDS                                                                                                       |
+| ClientSecret             | required | string  | The client secret that is being used for authenticating to CDS                                                                                                   |
+| ApiVersion               | required | string  | The API version of the CDS endpoint                                                                                                                              |
+| VerifySSL                | optional | boolean | A feature flag for verifying SSL when connecting to the CDS endpoint. By defualt this is set to true as it is strongly recommended that SSL be checked           |
+| UseCompression           | optional | boolean | A feature flag for enabling compression on messages sent to the CDS endpoint                                                                                     |
 | WebRequestTimeoutSeconds | optional | integer | A feature flag for changing how long it takes for a request to time out                                                                                          |
 
 ### EDS Endpoint Configurations
@@ -98,7 +98,7 @@ The format of the configuration for an EDS endpoint is shown below along with de
 | EndpointType             | required | string  | The endpoint type. For EDS this will always be "EDS"                                                                                              |
 | Resource                 | required | string  | The endpoint for EDS if the namespace. If EDS is being run on your local machine with the default configuration, it will be http://localhost:5590 |
 | ApiVersion               | required | string  | The API version of the EDS endpoint                                                                                                               |
-| UseCompression           | optional | boolean | A feature flag for enabling compression on messages sent to the ADH endpoint                                                                      |
+| UseCompression           | optional | boolean | A feature flag for enabling compression on messages sent to the CDS endpoint                                                                      |
 | WebRequestTimeoutSeconds | optional | integer | A feature flag for changing how long it takes for a request to time out                                                                           |
 
 ### PI Endpoint Configuration
@@ -127,11 +127,11 @@ The format of the configuration for a PI endpoint is shown below along with desc
 | Username                 | required | string         | The username that is being used for authenticating to the PI Web API                                                                                                                                                                                                                    |
 | Password                 | required | string         | The password that is being used for authenticating to the PI Web API                                                                                                                                                                                                                    |
 | VerifySSL                | optional | boolean/string | A feature flag for verifying SSL when connecting to the PI Web API. Alternatively, this can specify the path to a .pem certificate file if a self-signed certificate is being used by the PI Web API. By defualt this is set to true as it is strongly recommended that SSL be checked. |
-| UseCompression           | optional | boolean        | A feature flag for enabling compression on messages sent to the ADH endpoint                                                                                                                                                                                                            |
+| UseCompression           | optional | boolean        | A feature flag for enabling compression on messages sent to the CDS endpoint                                                                                                                                                                                                            |
 | WebRequestTimeoutSeconds | optional | integer        | A feature flag for changing how long it takes for a request to time out                                                                                                                                                                                                                 |
 
 ---
 
-For the main OMF basic samples page [ReadMe](https://github.com/AVEVA/AVEVA-Samples-OMF/blob/main/docs/OMF_BASIC.md)  
-For the main OMF page [ReadMe](https://github.com/AVEVA/AVEVA-Samples-OMF)  
-For the main AVEVA samples page [ReadMe](https://github.com/AVEVA/AVEVA-Samples)
+For the main OMF basic samples page [ReadMe](https://github.com/AVEVA/sample-omf-basic_api-python/blob/main/README.md)  
+For the main OMF samples page [ReadMe](https://github.com/AVEVA/AVEVA-Samples-OMF)  
+For the main AVEVA samples page [ReadMe](https://github.com/AVEVA)
