@@ -268,7 +268,7 @@ def get_appsettings():
     # for each endpoint construct the check base and OMF endpoint and populate default values
     for endpoint in filtered_endpoints:
         if endpoint["EndpointType"] == 'OCS':
-            print('OCS endpoint type is deprecated as OSIsoft Cloud Services has now been migrated to AVEVA Data Hub, using CDS type instead.')
+            print('OCS endpoint type is deprecated as OSIsoft Cloud Services has now been migrated to CONNECT data services, using CDS type instead.')
             endpoint_type = EndpointTypes.CDS
         else:
             endpoint["EndpointType"] = EndpointTypes(endpoint["EndpointType"])
