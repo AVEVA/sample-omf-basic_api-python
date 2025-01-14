@@ -42,7 +42,7 @@ The sample is configured using the file [appsettings.placeholder.json](appsettin
 
 The application can be configured to send to any number of endpoints specified in the endpoints array within appsettings.json. In addition, there are three types of endpoints: [Cds](#cds-endpoint-configuration), [EDS](#eds-endpoint-configuration), and [PI](#pi-endpoint-configuration). Each of the 3 types of enpoints are configured differently and their configurations are explained in the sections below.
 
-### CONNECT data store (Cds) endpoint configuration
+### CONNECT data services (Cds) endpoint configuration
 
 An OMF ingress client must be configured. On our [Aveva PI System Learning](https://www.youtube.com/channel/UC333r4jIeHaY-rGgMjON54g) Channel on YouTube we have a video on [Creating an OMF Connection](https://www.youtube.com/watch?v=52lAnkGC1IM).
 
