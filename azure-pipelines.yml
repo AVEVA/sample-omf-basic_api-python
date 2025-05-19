@@ -18,17 +18,17 @@ resources:
 
 parameters:
   - name: poolADH
-    default: DevOps Managed Containers Build
+    default: DevOps-Managed-Ubt22-Mdp
   - name: containerDemandsADH
     type: object
     default: ['Agent.OS -equals Linux']
   - name: poolPI
-    default: DevOps Managed Containers Build
+    default: DevOps-Managed-Ubt22-Mdp
   - name: containerDemandsPI
     type: object
     default: ['Agent.OS -equals Linux']
   - name: poolEDS
-    default: DevOps Managed Containers Build
+    default: DevOps-Managed-Ubt22-Mdp
   - name: containerDemandsEDS
     type: object
     default: ['PYTHON']
